@@ -2,18 +2,18 @@
 
 ## Import NeatMS
 
-After installation, you should be able to import "our module" as a package
+After installation, you should be able to import NeatMS as a package
 
 ``` python
-import neatms
+import NeatMS as ntms
 ```
 
 ## Getting help
 
-Like any python objects, you can inspect NeatMS objects through the `help` function
+Like any python objects, you can inspect NeatMS objects through the `help` function.
 
 ``` python
->>> import neatms as ntms
+>>> import NeatMS as ntms
 >>> help(ntms.Experiment)
 
 Help on class Experiment in module lcms_data_rawdata_support:
@@ -30,5 +30,5 @@ class Experiment(builtins.object)
  [...]
 ```
 
-However, for standard usage, we recommend to follow the basic tutorial and/or advanced tutorial proveided as jupyter notebooks on NeatMS github repository [TODO: Add links]. Those tutorial cover all necessary commands to import data, run prediction and export results. The advanced tutorial explains how to train the neural network model from scratch or via transfer learning.
+However, for standard usage, we recommend to follow the basic tutorial and/or advanced tutorial provided as jupyter notebooks on [NeatMS github repository](https://github.com/bihealth/NeatMS). This tutorial cover all necessary commands to import data, run prediction and export results. The advanced tutorial explains how to train the neural network model from scratch or via transfer learning.
 

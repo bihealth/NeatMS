@@ -6,9 +6,9 @@ The last layer of the neural network uses a softmax activation function, which m
 
 > You can follow the same approach using other classes than `High quality`. However, as `High quality` is the default class used in NeatMS, we will only cover this case here.
 
-Calling the method `set_threshold()` will compute and return the optimal threshold using the validation set that you can then pass everytime you use this neural network. However, this threshold is optimal according to very specific criteria, keep reading to understand how it is computed and learn how to set it manually according to your own criteria.
+Calling the method `get_threshold()` will compute and return the optimal threshold using the validation set that you can then pass everytime you use this neural network. However, this threshold is optimal according to very specific criteria, keep reading to understand how it is computed and learn how to set it manually according to your own criteria.
 
-Internaly, `set_threshold` call the method `get_true_vs_false_positive_df_val(label='High_quality')` which returns the following table:
+Internaly, `get_threshold` call the method `get_true_vs_false_positive_df(label='High_quality')` which returns the following table:
 
 ![NeatMS annotation tool](../img/recall_table.png)
 *Recall table*
@@ -21,5 +21,7 @@ Internaly, `set_threshold` call the method `get_true_vs_false_positive_df_val(la
 | ...                  | ...     | ...      | ...       | ...         | ...      | ...      | ...        |
 | 0.99                 | 0.0 | 0.0 | 0.0  | 0.0    | 0.0 | 0.0 | 0.0   |-->
 
-So 
 
+Using this table, you can decide on the threshold value that you would like to use.
+
+More tools and tips such as how to creating ROC curves to assist you in the choice of the right threshold value is coming soon.

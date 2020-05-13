@@ -10,23 +10,22 @@ In order to create an experiment object, we need to set 3 parameters:
 * The path to the feature table (.csv)
 * The experiment title (string)
 
-```
+``` python
 raw_data_folder_path = 'path/to/raw_data/folder'
 feature_table_path = 'path/to/feature_table'
-title = 'MyFirstExperiment'
 ```
 
 We can now create an experiment which will automatically load the raw data and the features, and structure the information so we can explore it easily.
 
-```
-experiment = Experiment(raw_data_folder_path, title, feature_table_path, load_MS1=True)
+``` python
+experiment = ntms.Experiment(raw_data_folder_path, feature_table_path)
 ```
 
 ## First data exploration
 
 Now that our experiment object is created, we can make use of the data structure within the module to explore the data before going further and label the features. For examples, here is a snippet to get some closer look at the number of feature collections and the number of samples they are present in. 
 
-``` 
+``` python
 from  collections import Counter
 exp = experiment
 sizes = []
@@ -59,11 +58,11 @@ First we need to create an instance of the `NN_handler` (Neural Network Handler)
 
 Let's create an instance of `NN_handler`. The only required argument is the experiment object we want to attach to the neural network handler:
 
-```
-nn_handler = NN_handler(experiment)
+``` python
+nn_handler = ntms.NN_handler(experiment)
 ```
 
-We can now load the neural network model that is provided with the too (TODO: check if it is possible to embed it in the package, otherwise, give the link to the model on github).
+We can now load the neural network model that is provided with the tool in the data folder of the [github repository](https://github.com/bihealth/NeatMS).
 
 ``` python
 nn_handler.create_model(model = "path_to_model.h5")
@@ -109,12 +108,10 @@ Before we can perform the prediction, we have to set a threshold value between 0
 Finally the prediction allow us to select the samples on which we want to perform the prediction. In most cases, we would like to perform the prediction on the full dataset (meaining all peaks from all samples), so that's what we will select here.
 
 ``` python
-# Select all samples available in the experiment
-samples = experiment.samples
-# Set the threshold to 
+# Set the threshold to 0.22
 threshold=0.22
 # Run the prediction
-nn_handler.predict_peaks(samples, threshold)
+nn_handler.predict_peaks(threshold)
 ```
 
 Although data handling has been optimised, running the prediction may take some time depending on the number and size of the files in the dataset (about 15 to 30 seconds per sample). The prediction is performed by batches of peaks, one batch corresponding to all peaks reported in one sample.

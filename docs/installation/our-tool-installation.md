@@ -8,7 +8,6 @@ NeatMS requires python 3.6 or higher and a [TensorFlow compatible system](https:
 
 These dependencies will be automatically installed with NeatMS package. However, we recommend to install them manually through pip and verify that they are installed and configured properly.
 
-* pyopenms
 * pymzml
 * numpy
 * pandas

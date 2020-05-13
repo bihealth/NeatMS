@@ -8,7 +8,7 @@ Now that you feel confident with neural network training, let's dive in prepare 
 NeatMS provides the necessary functions to do that, all we will have to do is create a `Neural network handler` object and call the batch creation method.
 
 ``` python
-nn_handler = NN_handler(experiment,  matrice_size=120, margin=1)
+nn_handler = ntms.NN_handler(experiment,  matrice_size=120, margin=1)
 ```
 As you can see we have given two more arguments than we did in the basic tutorial, you can leave them out if you want to use the default values of `120` and `1`. 
 

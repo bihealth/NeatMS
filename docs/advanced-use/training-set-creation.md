@@ -13,9 +13,8 @@ Before launching the tool and start labelling peaks, we need to create our exper
 ``` python
 raw_data_folder_path = 'path/to/raw_data/folder'
 feature_table_path = 'path/to/feature_table'
-title = 'MyFirstExperiment'
 
-experiment = Experiment(raw_data_folder_path, title, feature_table_path, load_MS1=True)
+experiment = ntms.Experiment(raw_data_folder_path, feature_table_path)
 ```
 
 We are now ready to launch the annotation tool!
@@ -23,7 +22,7 @@ We are now ready to launch the annotation tool!
 First we will create an instance of the class `AnnotationTool`, passing as argument the experiment object that we just created. Then, we call the only method available in this class to start the tool.
 
 ``` python
-annotation_tool = AnnotationTool(experiment)
+annotation_tool = ntms.AnnotationTool(experiment)
 annotation_tool.launch_annotation_tool()
 ```
 
@@ -46,7 +45,7 @@ To enter the review mode, simply add a list containing the labels you want to re
 
 ``` python
 # Options are ['High_quality','Low_quality','Noise']
-annotation_tool = AnnotationTool(experiment, review=['High_quality'])
+annotation_tool = ntms.AnnotationTool(experiment, review=['High_quality'])
 annotation_tool.launch_annotation_tool()
 ``` 
 

@@ -245,6 +245,7 @@ class OpenmsDataReader(DataReader):
 
 
     def get_openms_file_type(self, suffix):
+        import pyopenms
         # Define file format and return corresponding pyopenms file object
         if suffix.lower() == '.mzxml':
             return pyopenms.MzXMLFile()
@@ -257,6 +258,7 @@ class OpenmsDataReader(DataReader):
 
 
     def load_openms_exp(self, raw_file):
+        import pyopenms
         # Create a pyopenms file object
         sample = self.get_openms_file_type(raw_file.suffix)
         # Create pyopenms experiment
@@ -275,6 +277,7 @@ class OpenmsDataReader(DataReader):
 
 
     def get_MS1(self, file_path):
+        import pyopenms
         raw_file = file_path
 
         # Load raw data using pyopenms backend

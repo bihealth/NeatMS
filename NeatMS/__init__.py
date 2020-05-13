@@ -15,7 +15,6 @@ Full documentation is available at
 """
 
 
-import pyopenms
 import pymzml
 import numpy as np
 import pandas as pd

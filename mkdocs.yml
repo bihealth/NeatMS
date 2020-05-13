@@ -1,0 +1,19 @@
+site_name: NeatMS
+nav:
+  - Installation:
+    - NeatMS Installation: installation/our-tool-installation.md
+  - First steps:
+    - Quick start guide: first-steps/quick-start-guide.md
+    - Getting started: first-steps/getting-started.md
+    - Data format: first-steps/data-format.md
+    - Basic usage: first-steps/basic-usage.md
+  - Advanced use:
+    - Prerequisite: advanced-use/prerequisite.md
+    - Training set creation: advanced-use/training-set-creation.md
+    - Save function: advanced-use/save-function.md
+    - Neural network training: advanced-use/neural-network-training.md
+    - Hyperparameter optimization: advanced-use/hyperparameter-optimization.md
+theme: readthedocs
+# markdown_extensions:
+#   - codehilite
+

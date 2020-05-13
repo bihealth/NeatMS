@@ -13,4 +13,4 @@ Publication is currently pending, please use NeatMS github repository as referen
 
 ## Documentation
 
-Documentation is available at ... 
+Documentation is available at https://neatms.readthedocs.io/en/latest/

@@ -301,6 +301,8 @@ List of peak properties to be exported. Every property will appear as one column
 
 `height` - Peak height as given in the input feature table. One entry per sample.
 
+`area` - Peak area as given in the input feature table. One entry per sample.
+
 `peak_mz` - Peak *m/z* as given in the input feature table. One entry per sample.
 
 `peak_rt` - Peak retention time as given in the input feature table. One entry per sample.

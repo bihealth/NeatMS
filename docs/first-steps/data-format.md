@@ -7,7 +7,7 @@ The module requires two types of input:
 
 ## Raw data in mzML
 
-Most of vendor format can be converted to mzML format using msconvert from proteowizard... (TODO: give links) 
+Most of vendor format can be converted to mzML format using [msconvert from proteowizard](http://proteowizard.sourceforge.net/).
 
 ## Feature table file format
 
@@ -25,10 +25,11 @@ Here is the list of headers for the first 9 columns of an experiment containing 
 * sample1.mzML Peak RT start
 * sample1.mzML Peak RT end 
 * sample1.mzML Peak height 
+* sample1.mzML Peak area
 * sample1.mzML Peak m/z min 
 * sample1.mzML Peak m/z max 
 
-An example file is available in the data folder of the github repository (TODO: link)
+An example file is available in the data folder of [NeatMS github repository](https://github.com/bihealth/NeatMS).
 
 ### Feature table export from mzMine 2.0
 
@@ -50,6 +51,7 @@ Select the following in the *Export data file elements* panel:
 * Peak RT start
 * Peak RT end 
 * Peak height 
+* Peak area 
 * Peak m/z min 
 * Peak m/z max
 
@@ -59,4 +61,4 @@ MZmine 2 also provides filtering options, we recommend to not filter the peaks a
 
 ### Feature table export from XCMS
 
-This feature is in development and is coming soon.
+Instruction coming soon.

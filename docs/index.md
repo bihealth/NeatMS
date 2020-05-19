@@ -1,6 +1,6 @@
 # Introduction
 
-**NeatMS** is an open source python package for untargeted LCMS signal labelling and filtering. **NeatMS** enables automated filtering of false positive peaks reported by commonly used LCMS data processing pipelines. **NeatMS** relies on neural network based classification. **NeatMS** is distributed as an open source software under the MIT License.
+**NeatMS** is an open source python package for untargeted LCMS signal labelling and filtering. **NeatMS** enables automated filtering of false positive MS<sup>1</sup> peaks reported by commonly used LCMS data processing pipelines. **NeatMS** relies on neural network based classification. **NeatMS** is distributed as an open source software under the MIT License.
 
 # Reference & publication
 

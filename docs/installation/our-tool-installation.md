@@ -55,7 +55,7 @@ export LANG=en_US.UTF-8
 
 To follow the advanced tutorial and train your own model, you need to manually install these extra dependencies available through pip. 
 
-> Bioconda users can also install the extra libraries through pip.
+> *Bioconda users can also install the extra libraries through pip within the conda environment.*
 
 * jupyter notebook
 * dash

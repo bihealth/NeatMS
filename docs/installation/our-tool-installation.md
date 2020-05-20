@@ -42,7 +42,7 @@ You are now ready to install NeatMS.
 conda install neatms
 ```
 
-#### For MacOSX users
+#### For Mac OS users
 
 Depending on your system settings you may have to add this to your `.bash_profile` or enter it in your terminal (this will only work for the current session).
 

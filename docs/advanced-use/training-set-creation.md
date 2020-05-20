@@ -2,9 +2,9 @@
 
 ## Sample selection
 
-For optimal training, we recommend to use a representative subset of the dataset that your are planning to analyse, or as similar as possible. Using the same sample type (plasma, tissue, cells...), same sample preparation (i.e. extraction protocol), same instrumentation (LC column, MS...) for training the neural network as the ones used for the data we whish to analyse will allow us to have a more specific and more accurate model. 
+For optimal training, we recommend to use a representative subset of the dataset that your are planning to analyse, or as similar as possible. Using the same sample type (plasma, tissue, cells...), same sample preparation (i.e. extraction protocol), same instrumentation (LC column, MS...) will result in a  more specific and more accurate model for the data analysed. 
 
-Ideally, select pooled samples as they should contain a wide variety of peaks, and avoid using blank samples. Using a substet of a dataset is prefereable because all peaks need to extracted from the raw data before we can labelled them, and this can take some time (~15 seconds per samples). Using 200 samples would just take longer to load and use unnecessary memory space. A selection of 10 to 20 samples is enough. Just make sure to to remove all unnecssary columns from the feature table files as well as adjusting the coontent of your raw data folder.
+Ideally, select pooled samples as they should contain a wide variety of peaks, and avoid using blank samples. Using only a substet of a dataset is prefereable because all peaks need to extracted from the raw data before we can labelled them, and this can take some time (~15 seconds per samples). Using 200 samples would just take longer to load and use unnecessary memory space. A selection of 10 to 20 samples is enough. Just make sure to remove all unnecssary columns from the feature table files as well as adjusting the content of your raw data folder.
 
 ## Annotation (labelling) tool
 
@@ -37,7 +37,7 @@ Peaks are randomly selected, and stay accessible through the `Previous` button.
 
 ## Annotation tool - Review mode
 
-Consistently labeling hundreds, maybe thousands of peaks is not necessarily simple. We can make obviously make mistakes, but our interpretation of the peaks can change as we label them. A type of peak that was considered `High quality` can slowly change into a `Low quality` as we go along, even with highest possible attention, it will most certainly happen. As you can imagine, this can be a problem as we want to avoid providing conflicting data to train our neural network. So one good practice to have is to review at least once (every few hundreds of peaks is even better) the peaks we have been labelling. 
+Consistently labeling hundreds, maybe thousands of peaks is not necessarily simple. We can simply make mistakes, and our interpretation of the peaks can change as we label them. A type of peak that was considered `High quality` can slowly change into a `Low quality` as we go along, even with careful attention, it will most certainly happen. This can be a problem as we want to avoid providing conflicting data to train our neural network. So one good practice to have is to review at least once (every few hundreds of peaks is even better) the peaks we have already labelled. 
 
 Peaks can be reviewed altogether or by specific label, reviewing one label at a time helps making consistent decision.
 
@@ -49,4 +49,4 @@ annotation_tool = ntms.AnnotationTool(experiment, review=['High_quality'])
 annotation_tool.launch_annotation_tool()
 ``` 
 
-Once all peaks from the specified labels have been reviewed, the tool automatically goes back to its default mode and will give you randommely selected peaks to label.
+Once all peaks from the specified labels have been reviewed, the tool automatically goes back to its default mode and will give you randomly selected peaks to label.

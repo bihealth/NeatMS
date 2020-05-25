@@ -112,30 +112,33 @@ class NN_handler():
                 sample_key.create_interpolated_chromatograms(self.matrice_size, self.margin, peak_list=sample_peak_dict[sample_key])
         # End hotfix
 
+        valid_peaks = []
         for peak in peaks:
 
-            # Get the interpolated, baseline corrected and normalized peak
-            # dataframe = peak.interpolate_chromatogram(self.matrice_size,  self.margin, True)
-            dataframe = peak.get_formatted_chromatogram(self.matrice_size, self.margin)
+            if peak.valid:
+                valid_peaks.append(peak)
+                # Get the interpolated, baseline corrected and normalized peak
+                # dataframe = peak.interpolate_chromatogram(self.matrice_size,  self.margin, True)
+                dataframe = peak.get_formatted_chromatogram(self.matrice_size, self.margin)
 
-            # Extract only the Intensity and window value
-            data.append([dataframe[0], dataframe[1]])
-            # If merge classes is on, replace the classes to merge by the unique class given
-            if len(merge_classes) > 0:
-                if peak.annotation.label in merge_classes[0]:
-                    labels.append(merge_classes[1])
+                # Extract only the Intensity and window value
+                data.append([dataframe[0], dataframe[1]])
+                # If merge classes is on, replace the classes to merge by the unique class given
+                if len(merge_classes) > 0:
+                    if peak.annotation.label in merge_classes[0]:
+                        labels.append(merge_classes[1])
+                    else:
+                        labels.append(peak.annotation.label)
                 else:
                     labels.append(peak.annotation.label)
-            else:
-                labels.append(peak.annotation.label)
-            ids.append(peak.id)
+                ids.append(peak.id)
 
         # Create an encoder and fit the label list 
         label_encoder = LabelEncoder()
         label_encoder.fit(self.label_list)
 
         # Find the index to create training/test split
-        split_index = int(round(validation_split*len(peaks)))
+        split_index = int(round(validation_split*len(valid_peaks)))
 
         # Create test data
         test_data = data[:split_index]

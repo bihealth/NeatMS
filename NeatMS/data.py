@@ -176,7 +176,7 @@ class PymzmlDataReader(DataReader):
             peak = peak_list[i]
             # Test if the dataframe actually contains values (it can rarely happens that a reported peak is empty and therefore not valid)
             # Set valid to True/False -> meaning that it can or cannot be used by the NN for classification
-            if len(peak.dataframe[0]) == 0:
+            if len(peak.dataframe[0]) <= 1:
                 peak.valid = False
                 # Set peak.dataframe to None
                 peak.dataframe = None

@@ -179,13 +179,7 @@ class Experiment():
 
 
     def save(self):
-        ms_experiment_dict = dict()
-        for sample in self.samples:
-            ms_experiment_dict[sample.name] = sample.data
-            sample.data = None
         file_name = self.name + '.pkl'
         with open(file_name, 'wb') as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
-        for sample in self.samples:
-            sample.data = ms_experiment_dict[sample.name]
 

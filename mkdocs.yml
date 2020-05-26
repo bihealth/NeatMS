@@ -3,7 +3,7 @@ nav:
   - Installation:
     - NeatMS Installation: installation/our-tool-installation.md
   - First steps:
-    - Quick start guide: first-steps/quick-start-guide.md
+    - Tutorials: first-steps/quick-start-guide.md
     - Getting started: first-steps/getting-started.md
     - Data format: first-steps/data-format.md
     - Basic usage: first-steps/basic-usage.md

@@ -222,8 +222,7 @@ min_group_classes
 ``` python
 ["High_quality"]
 ```
-
-This argument works alongside `min_group_size`. `min_group_classes` allows you to specify the list of classes you want to filter using `min_group_size`, a feature will have to be labelled with `min_group_classes` and appear in `min_group_classes` group classes to be conserved. For example, the following parameters would export all peaks labelled with `High_quality` and `Low_quality` if a minimum of 50% of the samples contain the peak labelled as `High_quality`. `Noise` labelled peaks would be reported as missing values.
+This argument helps filtering results. It works alongside `min_group_size`. To be conserved in the exported results, a feature must be labelled with one of the class given in `min_group_classes` and appear in a minimum of `min_group_size`% of samples. For example, the parameters below would export all peaks labelled with `High_quality` and `Low_quality` if a minimum of 50% of the samples contain the peak labelled as `High_quality`. `Noise` labelled peaks would be reported as missing values. To export `Noise` peaks, just add the label `Noise` to the `export_classes` list.
 
 ``` python
 export_classes = ["High_quality", "Low_quality"]
@@ -244,7 +243,7 @@ min_group_size
 0.75
 ```
 
-This argument works alongside `min_group_classes`. `min_group_classes` allows you to specify the list of classes you want to filter using `min_group_size`, a feature will have to be labelled with `min_group_classes` and appear in `min_group_classes` group classes to be conserved. `min_group_size` should be set between 0 and 1.
+This argument helps filtering results. It works alongside `min_group_classes`. To be conserved in the exported results, a feature must be labelled with one of the class given in `min_group_classes` and appear in a minimum of `min_group_size`% of samples. `min_group_size` should be set between 0 and 1.
 
 ---
 

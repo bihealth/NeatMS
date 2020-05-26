@@ -10,6 +10,8 @@ pip install notebook
 
 More information on how to install and run jupyter notebook is available [here](https://jupyter.org/install).
 
+> To follow the to tutorial more easily, please clone or download [the github repository](https://github.com/bihealth/NeatMS) so you have direct access to the example files and model. Links below points to the files on github, but your local version will have the same architecture.
+
 ## Basic usage tutorial
 
 This jupyter notebook will drive you through the basic commands to use NeatMS such as loading example data, loading an existing neural network model, run the prediction to label the peaks, and export the results.

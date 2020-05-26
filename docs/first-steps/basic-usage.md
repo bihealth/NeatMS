@@ -119,9 +119,9 @@ Although, data handling has been optimised, running the prediction may take some
 
 ## Explore and export results
 
-Now that the prediction is done, every peak present in the dataset has been labeled with one of the 3 default classes: `High quality`, `Low_quality`, `Noise`. In this section we will learn how to make use of this information to export the data in deferent ways.
+Now that the prediction is done, every peak present in the dataset has been labeled with one of the 3 default classes: `High_quality`, `Low_quality`, `Noise`. In this section we will learn how to make use of this information to export the data in deferent ways.
 
-Before learning how to use the export method, let's investigate the results. The snippet below will allow you to get a quick overview of the prediction preformed, which gives us some information about the quality of the peak detection.
+Before learning how to use the export method, let's investigate the results. The snippet below will allow you to get a quick overview of the predictions, which gives us some information about the quality of the peak detection.
 
 ```
 from  collections import Counter

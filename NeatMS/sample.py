@@ -37,11 +37,11 @@ class Sample():
         return self.raw_data.extract_chromatogram(rt_start, rt_end, mz_min, mz_max)
 
 
-    def create_interpolated_chromatograms(self, vals=120, margin=1, normalise=True, peak_list=None):
+    def create_interpolated_chromatograms(self, vals=120, margin=1, normalise=True, peak_list=None, min_scan_num=5):
         # By default, if no peak list is provided, all peaks are used 
         if peak_list is None:
             peak_list = self.peak_list
 
-        self.raw_data.create_interpolated_chromatograms(vals, margin, normalise, peak_list)
+        self.raw_data.create_interpolated_chromatograms(vals, margin, normalise, peak_list, min_scan_num)
 
 

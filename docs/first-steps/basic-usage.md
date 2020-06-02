@@ -51,11 +51,11 @@ Number of consensus features:
    ...
 ``` 
 
-A feature collection represent a list features that have been aligned between each other (found in one or more samples).
+A feature collection represent a list of features from different samples that have been aligned between each other (found in one or more samples).
 
 ## Load a Neural network model.
 
-First we need to create an instance of the `NN_handler` (Neural Network Handler) class. This object will allow us to interact with the neural network model, it provides methods to perform actions on and with the neural network and link it to the data through our experiment object.
+First we need to create an instance of the `NN_handler` (Neural Network Handler) class. This object will allow us connect the data to the neural network model. It provides methods to perform actions on the neural network, and link it to the data through our experiment object.
 
 Let's create an instance of `NN_handler`. The only required argument is the experiment object we want to attach to the neural network handler:
 
@@ -69,7 +69,7 @@ We can now load the neural network model that is provided with the tool in the d
 nn_handler.create_model(model="path_to_model.h5")
 ```
 
-Information about the model architecture can be found using the summary method. This is particularly useful for advanced usage when training the network through transfer learning, it is also a godd way to check whether network created by a third party is appropriate for us. Make sure that the shapes of the first and last layers of the model correspond to the one below.
+Information about the model architecture can be found using the summary method. This is particularly useful for advanced usage when training the network through transfer learning, it is also a good way to check whether a network created by a third party is appropriate for us. Make sure that the shapes of the layers named `input_1` and `dense_prediction` of the model correspond to the one below.
 
 ``` python
 >>> nn_handler.get_model_summary()
@@ -100,7 +100,7 @@ Non-trainable params: 0
 _________________________________________________________________
 ```
 
-For example, this summary tells us that the expected shape of the input layer is (2, 120, 1), which is the default shape used by NeatMS. That means that we are good to proceed to the next step as we are using default values for all arguments and parameters.
+For example, this summary tells us that the expected shape of the input layer is (None, 2, 120, 1), which is the default shape used by NeatMS. That means that we are good to proceed to the next step as we are using default values for all arguments and parameters.
 
 ## Perform the prediction
 
@@ -207,7 +207,7 @@ export_classes
 ["High_quality", "Low_quality"]
 ```
 
-This arguments takes the list of classes that you would like to export. Peaks labelled with one of the classes present in that list will be exported, the rest will be set as missing values. By default, `Noise` labelled peaks are exported as missing values.
+This argument takes the list of classes that you would like to export. Peaks labelled with one of the classes present in that list will be exported, the rest will be set as missing values. By default, `Noise` labelled peaks are exported as missing values.
 
 ---
 
@@ -222,7 +222,7 @@ min_group_classes
 ``` python
 ["High_quality"]
 ```
-This argument helps filtering results. It works alongside `min_group_size`. To be conserved in the exported results, a feature must be labelled with one of the class given in `min_group_classes` and appear in a minimum of `min_group_size`% of samples. For example, the parameters below would export all peaks labelled with `High_quality` and `Low_quality` if a minimum of 50% of the samples contain the peak labelled as `High_quality`. `Noise` labelled peaks would be reported as missing values. To export `Noise` peaks, just add the label `Noise` to the `export_classes` list.
+This argument helps filtering results. It works alongside `min_group_size`. To be conserved in the exported results, a feature must be labelled with one of the classes given in `min_group_classes` and appear in a minimum of `min_group_size`% of samples. For example, the parameters below would export all peaks labelled with `High_quality` and `Low_quality` if a minimum of 50% of the samples contain the peak labelled as `High_quality`. `Noise` labelled peaks would be reported as missing values. To export `Noise` peaks, just add the label `Noise` to the `export_classes` list.
 
 ``` python
 export_classes = ["High_quality", "Low_quality"]
@@ -259,7 +259,7 @@ exclude
 []
 ```
 
-This is the sample exclusion list, the method supports either a list of objects of type NeatMS Sample, or a list of strings containing sample names `Sample.name`. Mixed list is supported too but be avoided.
+This is the sample exclusion list, the method supports either a list of objects of type NeatMS Sample, or a list of strings containing sample names `Sample.name`. Mixed list is supported too but should be avoided.
 
 > Note that this exclusion list will affect the argument `min_group_size`. 
 

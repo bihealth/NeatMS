@@ -38,9 +38,9 @@ class RawData():
         return chromatogram
 
 
-    def create_interpolated_chromatograms(self, vals, margin, normalise, peak_list):
+    def create_interpolated_chromatograms(self, vals, margin, normalise, peak_list, min_scan_num):
         # TODO: IF self.MS1 exist, iterate through the numpy array instead (method within this class, not the reader)
-        self.reader.create_interpolated_chromatograms(self.file, vals, margin, normalise, peak_list)
+        self.reader.create_interpolated_chromatograms(self.file, vals, margin, normalise, peak_list, min_scan_num)
 
 
 class DataReader():
@@ -118,7 +118,7 @@ class PymzmlDataReader(DataReader):
         return final_dataframe
 
 
-    def create_interpolated_chromatograms(self, file_path, vals, margin, normalise, peak_list):
+    def create_interpolated_chromatograms(self, file_path, vals, margin, normalise, peak_list, min_scan_num):
         mzml_file = str(file_path)
         run = pymzml.run.Reader(mzml_file)
 
@@ -174,9 +174,13 @@ class PymzmlDataReader(DataReader):
         # Iterate through all the peaks to restructure the chromatogram dataframe that we just created
         for i in range(len(peak_list)):
             peak = peak_list[i]
-            # Test if the dataframe actually contains values (it can rarely happens that a reported peak is empty and therefore not valid)
+            peak_rt_values = np.concatenate(peak.dataframe[2], axis=0, out=None)
+            unique_rt = np.unique(peak_rt_values)
+            # Extract the number of scan in the peak for filtering peaks with too few scans
+            peak.scan_number = np.where(np.logical_and(unique_rt >= peak.rt_start, unique_rt <= peak.rt_end))[0].size
+            # Test if the dataframe actually contains values (it can sometime happen that a reported peak is empty and therefore not valid)
             # Set valid to True/False -> meaning that it can or cannot be used by the NN for classification
-            if len(peak.dataframe[0]) <= 1:
+            if (len(unique_rt) <= 1) or peak.scan_number < min_scan_num:
                 peak.valid = False
                 # Set peak.dataframe to None
                 peak.dataframe = None
@@ -185,7 +189,7 @@ class PymzmlDataReader(DataReader):
                 # Concatenate the array for each dimension so we have one array per dimension
                 peak_mz_values = np.concatenate(peak.dataframe[0], axis=0, out=None)
                 peak_intensities = np.concatenate(peak.dataframe[1], axis=0, out=None)
-                peak_rt_values = np.concatenate(peak.dataframe[2], axis=0, out=None)
+                
                 # Create the matrix of the chromatogram
                 temp_dataframe = np.array([peak_mz_values,peak_intensities,peak_rt_values])
                 # One more step is required as a single rt can contain several mz values, we need to find and sum those values

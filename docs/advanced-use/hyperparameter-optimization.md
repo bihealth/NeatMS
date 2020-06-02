@@ -13,15 +13,37 @@ Internaly, `get_threshold` call the method `get_true_vs_false_positive_df(label=
 ![NeatMS annotation tool](../img/recall_table.png)
 *Recall table*
 
+| Probablity_threshold | True    | False    | False_low | False_noise |
+|----------------------|---------|----------|-----------|-------------|
+| 0.00                 | 1.0 | 1.0 | 1.0  | 1.0    |
+| 0.01                 | 1.0 | 0.440 | 0.803  | 0.206    |
+| ...                  | ...     | ...      | ...       | ...      |
+| 0.99                 | 0.0 | 0.0 | 0.0  | 0.0    |
 
-<!--| Probablity_threshold | True    | False    | False_low | False_noise | diff     | diff_low | diff_noise |
-|----------------------|---------|----------|-----------|-------------|----------|----------|------------|
-| 0.00                 | 1.0 | 1.0 | 1.0  | 1.0    | 0.0 | 0.0 | 0.0   |
-| 0.01                 | 1.0 | 0.096 | 0.838  | 0.039    | 0.903 | 0.161 | 0.960   |
-| ...                  | ...     | ...      | ...       | ...         | ...      | ...      | ...        |
-| 0.99                 | 0.0 | 0.0 | 0.0  | 0.0    | 0.0 | 0.0 | 0.0   |-->
+
+Using this table, you can decide on the threshold value that you would like to use. For example, if we were to select a `0.01` threshold, 100% of `High_quality` peaks would be correctly predicted but we would have 44% of false positive (80% of `Low_quality`, and 20% of `Noise` peaks would be predicted as `High_quality`). This is obviously not a good threshold to choose in this case. 
+
+The `get_threshold()` function returns the threshold that has the highest value when subtracting `False` to `True` positives. You can decide to be more conservative by choosing a lower threshold which will result in a higher true positive rate but also a higher false positive rate (higher sensitivity but lower specificty). A higher threshold will have the opposite effect, returning a lower sensitivity but higher specifictiy.
+
+You can evaluate the general performance of your model using a ROC curve and calculating the area under the curve.
+
+``` python
+# Import the required libraries first
+import numpy as np
+from sklearn.metrics import auc
+
+# Sort the dataframe by False Postive rate
+prob_df_roc = prob_df.sort_values(by=['Probablity_threshold'],ascending=False)
+
+# Compute the area under the curve
+auc(prob_df_roc['False'],prob_df_roc['True'])
+```
+If correctly trained, you should obtain an AUC higher than 95.0.
+
+Finally, you can plot the ROC curve like so:
+
+``` python
+prob_df_roc.plot(x='False', y='True', figsize=(10,10), grid=True)
+```
 
 
-Using this table, you can decide on the threshold value that you would like to use.
-
-More tools and tips such as how to creating ROC curves to assist you in the choice of the right threshold value is coming soon.

@@ -14,13 +14,14 @@ class NN_handler():
     Connection to the data is made through the experiment class
     """
 
-    def __init__(self, experiment, matrice_size=120, margin=1, table_index=0, exclude=[]):
+    def __init__(self, experiment, matrice_size=120, margin=1, table_index=0, exclude=[], min_scan_num=5):
         self.experiment = experiment
         self.annotation_table = experiment.feature_tables[table_index].annotation_table
         self.labels = self.get_labels(exclude)
         self.label_list = sorted(self.labels)
         self.matrice_size = matrice_size
         self.margin = margin
+        self.min_scan_num = min_scan_num
 
 
     def get_labels(self, exclude=[]):
@@ -109,7 +110,7 @@ class NN_handler():
                     sample_peak_dict[peak.sample] = [peak]
 
             for sample_key in sample_peak_dict:
-                sample_key.create_interpolated_chromatograms(self.matrice_size, self.margin, peak_list=sample_peak_dict[sample_key])
+                sample_key.create_interpolated_chromatograms(self.matrice_size, self.margin, peak_list=sample_peak_dict[sample_key], min_scan_num=self.min_scan_num)
         # End hotfix
 
         valid_peaks = []
@@ -267,7 +268,7 @@ class NN_handler():
 
             # Generate all peak dataframe for the specific sample
             logger.info("Extracting and formatting peak chromatograms for sample: %s",sample.name)
-            sample.create_interpolated_chromatograms(self.matrice_size, self.margin)
+            sample.create_interpolated_chromatograms(self.matrice_size, self.margin, min_scan_num=self.min_scan_num)
             data = []
             # Create the batch by adding all formatted chromatograms in one list
             valid_peak_list = []

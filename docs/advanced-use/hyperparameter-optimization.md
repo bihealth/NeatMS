@@ -30,8 +30,12 @@ You can evaluate the general performance of your model using a ROC curve and cal
 # Import the required libraries first
 import numpy as np
 from sklearn.metrics import auc
+import pandas as pd
 
-# Sort the dataframe by False Postive rate
+# Get probability dataframe
+prob_df = nn_handler.get_true_vs_false_positive_df()
+
+# Sort the dataframe to create the ROC curve
 prob_df_roc = prob_df.sort_values(by=['Probablity_threshold'],ascending=False)
 
 # Compute the area under the curve

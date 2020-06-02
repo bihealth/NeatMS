@@ -17,6 +17,7 @@ Internaly, `get_threshold` call the method `get_true_vs_false_positive_df(label=
 | 0.01                 | 1.0 | 0.440 | 0.803  | 0.206    |
 | ...                  | ...     | ...      | ...       | ...      |
 | 0.99                 | 0.0 | 0.0 | 0.0  | 0.0    |
+
 *Recall table*
 
 Using this table, you can decide on the threshold value that you would like to use. For example, if we were to select a `0.01` threshold, 100% of `High_quality` peaks would be correctly predicted but we would have 44% of false positive (80% of `Low_quality`, and 20% of `Noise` peaks would be predicted as `High_quality`). This is obviously not a good threshold to choose in this case. 

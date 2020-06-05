@@ -174,53 +174,58 @@ class PymzmlDataReader(DataReader):
         # Iterate through all the peaks to restructure the chromatogram dataframe that we just created
         for i in range(len(peak_list)):
             peak = peak_list[i]
-            peak_rt_values = np.concatenate(peak.dataframe[2], axis=0, out=None)
-            unique_rt = np.unique(peak_rt_values)
-            # Extract the number of scan in the peak for filtering peaks with too few scans
-            peak.scan_number = np.where(np.logical_and(unique_rt >= peak.rt_start, unique_rt <= peak.rt_end))[0].size
-            # Test if the dataframe actually contains values (it can sometime happen that a reported peak is empty and therefore not valid)
-            # Set valid to True/False -> meaning that it can or cannot be used by the NN for classification
-            if (len(unique_rt) <= 1) or peak.scan_number < min_scan_num:
+            if len(peak.dataframe[0]) <= 1:
                 peak.valid = False
                 # Set peak.dataframe to None
                 peak.dataframe = None
-            else:
-                peak.valid = True
-                # Concatenate the array for each dimension so we have one array per dimension
-                peak_mz_values = np.concatenate(peak.dataframe[0], axis=0, out=None)
-                peak_intensities = np.concatenate(peak.dataframe[1], axis=0, out=None)
-                
-                # Create the matrix of the chromatogram
-                temp_dataframe = np.array([peak_mz_values,peak_intensities,peak_rt_values])
-                # One more step is required as a single rt can contain several mz values, we need to find and sum those values
-                # Extract all unique rt values
-                all_rt = np.unique(temp_dataframe[2])
-                # Sum Intensities for rt values that are not unique (Equivalent of pandas groupby but using numpy arrays)
-                # We also transpose the resulting array to get the correct dimensions 
-                final_dataframe = np.array([[rt, temp_dataframe[1][temp_dataframe[2] == rt].sum()] for rt in all_rt]).T
-                
-                # Interpolation of the chromatogram to have the correct matrice size and peak window information for neural network feeding
-                # Remove the baseline (very crude approach of removing the minimum value)
-                intensity_array = final_dataframe[1] - np.amin(final_dataframe[1])
-                # Get peak retention time start and end (including margin)
-                rt_start, rt_end = peak.get_window_margin(margin)
-                # Prepare our evenly spaced numbers over the retention time interval for interpoaltion
-                xvals = np.linspace(rt_start, rt_end, vals)
+            if peak.valid != False:
+                peak_rt_values = np.concatenate(peak.dataframe[2], axis=0, out=None)
+                unique_rt = np.unique(peak_rt_values)
+                # Extract the number of scan in the peak for filtering peaks with too few scans
+                peak.scan_number = np.where(np.logical_and(unique_rt >= peak.rt_start, unique_rt <= peak.rt_end))[0].size
+                # Test if the dataframe actually contains values (it can sometime happen that a reported peak is empty and therefore not valid)
+                # Set valid to True/False -> meaning that it can or cannot be used by the NN for classification
+                if (len(unique_rt) <= 1) or peak.scan_number < min_scan_num:
+                    peak.valid = False
+                    # Set peak.dataframe to None
+                    peak.dataframe = None
+                else:
+                    peak.valid = True
+                    # Concatenate the array for each dimension so we have one array per dimension
+                    peak_mz_values = np.concatenate(peak.dataframe[0], axis=0, out=None)
+                    peak_intensities = np.concatenate(peak.dataframe[1], axis=0, out=None)
+                    
+                    # Create the matrix of the chromatogram
+                    temp_dataframe = np.array([peak_mz_values,peak_intensities,peak_rt_values])
+                    # One more step is required as a single rt can contain several mz values, we need to find and sum those values
+                    # Extract all unique rt values
+                    all_rt = np.unique(temp_dataframe[2])
+                    # Sum Intensities for rt values that are not unique (Equivalent of pandas groupby but using numpy arrays)
+                    # We also transpose the resulting array to get the correct dimensions 
+                    final_dataframe = np.array([[rt, temp_dataframe[1][temp_dataframe[2] == rt].sum()] for rt in all_rt]).T
+                    
+                    # Interpolation of the chromatogram to have the correct matrice size and peak window information for neural network feeding
+                    # Remove the baseline (very crude approach of removing the minimum value)
+                    intensity_array = final_dataframe[1] - np.amin(final_dataframe[1])
+                    # Get peak retention time start and end (including margin)
+                    rt_start, rt_end = peak.get_window_margin(margin)
+                    # Prepare our evenly spaced numbers over the retention time interval for interpoaltion
+                    xvals = np.linspace(rt_start, rt_end, vals)
 
-                # Interpolate intensity values, anything outside is set to 0
-                yinterp = np.interp(xvals, final_dataframe[0], intensity_array, left=0, right=0)
-                # We scale the interpolated intensity values between 0 and 1 (Important)
-                yinterp = np.divide(yinterp, yinterp.max())
-                # Create our array representing the peak window (1 = within the rt window, 0 = outside the rt window)
-                window = [1 if (rt >= peak.rt_start) and (rt <= peak.rt_end) else 0 for rt in xvals]
-                # Create our final matrix
-                interpolated_chromatogram = np.array([yinterp,window])
-                # Create a chromatogram object to store this matrix
-                chromatogram_object = Chromatogram(peak, vals, margin, interpolated_chromatogram)
-                # Add it to the list of chromatograms available for this peak (for dev only to test different margin and matrix sizes)
-                peak.formatted_chromatograms.append(chromatogram_object)
-                # Set peak.dataframe to None
-                peak.dataframe = None
+                    # Interpolate intensity values, anything outside is set to 0
+                    yinterp = np.interp(xvals, final_dataframe[0], intensity_array, left=0, right=0)
+                    # We scale the interpolated intensity values between 0 and 1 (Important)
+                    yinterp = np.divide(yinterp, yinterp.max())
+                    # Create our array representing the peak window (1 = within the rt window, 0 = outside the rt window)
+                    window = [1 if (rt >= peak.rt_start) and (rt <= peak.rt_end) else 0 for rt in xvals]
+                    # Create our final matrix
+                    interpolated_chromatogram = np.array([yinterp,window])
+                    # Create a chromatogram object to store this matrix
+                    chromatogram_object = Chromatogram(peak, vals, margin, interpolated_chromatogram)
+                    # Add it to the list of chromatograms available for this peak (for dev only to test different margin and matrix sizes)
+                    peak.formatted_chromatograms.append(chromatogram_object)
+                    # Set peak.dataframe to None
+                    peak.dataframe = None
 
         # Restructure the array
         # mz_values = np.concatenate(master_list[0], axis=0, out=None)

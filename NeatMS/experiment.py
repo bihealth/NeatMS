@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 from .data import RawData, DataReader, PymzmlDataReader
 from .sample import Sample
-from .feature import Feature, FeatureCollection, FeatureTable
+from .feature import Feature, FeatureCollection, FeatureTable, MzmineFeatureTable, PeakonlyFeatureTable
 from .annotation import AnnotationTable
 
 class Experiment():
@@ -22,13 +22,14 @@ class Experiment():
 
     """
 
-    def __init__(self, raw_file_folder_path, feature_table_path, labels=['High_quality','Low_quality','Noise'], load_MS1=False, name="NeatMS_experiment"):
+    def __init__(self, raw_file_folder_path, feature_table_path, input_format, labels=['High_quality','Low_quality','Noise'], load_MS1=False, name="NeatMS_experiment"):
         self.name = name
         self.raw_file_folder = self.get_file_folder(raw_file_folder_path)
         self.raw_files = self.get_raw_files()
         self.feature_tables = []
         self.data_reader = self.set_data_reader(feature_table_path)
         self.samples = self.load_samples(load_MS1)
+        self.input_format = input_format
         self.load_feature_table(feature_table_path, labels)
 
 
@@ -98,7 +99,7 @@ class Experiment():
         feature_table_file_folder = pathlib.Path(feature_table_path)
         # Test if the path is a folder (several files = unaligned features)
         if feature_table_file_folder.is_dir():
-            # Test is provided files are all in .csv format 
+            # Test if provided files are all in .csv format 
             feature_table_file_type = set([file.suffix.lower() for file in feature_table_file_folder.iterdir()])
             if len(feature_table_file_type) > 1:
                 logger.error('The feature table file folder contains several file formats, only .csv format is accepted')
@@ -106,7 +107,10 @@ class Experiment():
             if list(feature_table_file_type)[0] != '.csv':
                 logger.error('Required format is .csv. Provided format: %s',list(feature_table_file_type)[0])
                 return None
-            feature_table = FeatureTable(feature_table_path)
+            if self.input_format.lower() == 'mzmine':
+                feature_table = MzmineFeatureTable(feature_table_path)
+            elif self.input_format.lower() == 'peakonly':
+                feature_table = PeakonlyFeatureTable(feature_table_path)
             self.feature_tables.append(feature_table)
             feature_table.load_feature_table()
             sample_names = self.get_file_names()
@@ -115,11 +119,14 @@ class Experiment():
             annotation_table = AnnotationTable(feature_table, labels)
             feature_table.annotation_table = annotation_table
             return feature_table
-        # Else test the if feature table file format is csv (one file = aligned features) 
+        # Else test if feature table file format is csv (one file = aligned features) 
         elif feature_table_file_folder.suffix.lower() == '.csv':
             logger.info('Loading feature table: %s',feature_table_file_folder.resolve())
             # Default feature table loading
-            feature_table = FeatureTable(feature_table_path)
+            if self.input_format.lower() == 'mzmine':
+                feature_table = MzmineFeatureTable(feature_table_path)
+            elif self.input_format.lower() == 'peakonly':
+                logger.error('Aligned features from peakonly are not supported')
             self.feature_tables.append(feature_table)
             feature_table.load_feature_table()
             sample_names = self.get_file_names()

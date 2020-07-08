@@ -22,6 +22,7 @@ class Sample():
         self.id = Sample.sample_counter
         self.raw_file = raw_file_path
         self.name = self.raw_file.stem
+        self.file_name = self.raw_file.name
         self.peak_list = []
         self.feature_list = []
         self.raw_data = RawData(self, raw_file_path, data_reader)

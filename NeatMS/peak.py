@@ -35,7 +35,7 @@ class Peak():
         return cls.peak_dict[id]
 
 
-    def __init__(self, sample, RT, mz, rt_start, rt_end, mz_min, mz_max, height, area, feature = None, monoisotopic= None, valid=None):
+    def __init__(self, sample, RT, mz, rt_start, rt_end, mz_min, mz_max, height, area, feature = None, monoisotopic= None, valid=None, area_baseline_corrected=None, sn=None):
         self.id = Peak.peak_counter
         self.sample = sample
         self.RT = RT
@@ -51,6 +51,8 @@ class Peak():
         self.scan_number = None
         self.monoisotopic = monoisotopic
         self.valid = valid
+        self.area_baseline_corrected = area_baseline_corrected
+        self.sn = sn
         self.formatted_chromatograms = []
         Peak.peak_dict[self.id] = self
         Peak.peak_counter += 1            

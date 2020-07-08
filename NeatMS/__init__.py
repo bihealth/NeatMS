@@ -26,7 +26,7 @@ import sys
 
 from .experiment import Experiment
 from .data import RawData, DataReader, PymzmlDataReader #, OpenmsDataReader
-from .feature import Feature, FeatureCollection, FeatureTable, MzmineFeatureTable, PeakonlyFeatureTable
+from .feature import Feature, FeatureCollection, FeatureTable, MzmineFeatureTable, PeakonlyFeatureTable, XcmsFeatureTable
 from .annotation import Annotation, AnnotationTable, AnnotationTool
 from .peak import Chromatogram, Peak
 from .handler import NN_handler

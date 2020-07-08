@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 from .data import RawData, DataReader, PymzmlDataReader
 from .sample import Sample
-from .feature import Feature, FeatureCollection, FeatureTable, MzmineFeatureTable, PeakonlyFeatureTable
+from .feature import Feature, FeatureCollection, FeatureTable, MzmineFeatureTable, PeakonlyFeatureTable, XcmsFeatureTable
 from .annotation import AnnotationTable
 
 class Experiment():
@@ -111,6 +111,8 @@ class Experiment():
                 feature_table = MzmineFeatureTable(feature_table_path)
             elif self.input_format.lower() == 'peakonly':
                 feature_table = PeakonlyFeatureTable(feature_table_path)
+            elif self.input_format.lower() == 'xcms':
+                logger.error('XCMS input should be a .csv file, directory given')
             self.feature_tables.append(feature_table)
             feature_table.load_feature_table()
             sample_names = self.get_file_names()
@@ -127,6 +129,8 @@ class Experiment():
                 feature_table = MzmineFeatureTable(feature_table_path)
             elif self.input_format.lower() == 'peakonly':
                 logger.error('Aligned features from peakonly are not supported')
+            elif self.input_format.lower() == 'xcms':
+                feature_table = XcmsFeatureTable(feature_table_path)
             self.feature_tables.append(feature_table)
             feature_table.load_feature_table()
             sample_names = self.get_file_names()
@@ -139,8 +143,41 @@ class Experiment():
             # TODO: add support for openms .featurexml or .consensusfeaturexml file format 
             logger.error('Only .csv file format is currently supported for the feature table')
 
+    def get_columns(self, export_properties):
+        # Need to respect the export properties order (4 first colunms, the rest follow the input)
+        columns = ['feature ID', 'sample']
+        if "mz" in export_properties:
+            columns.append('m/z')
+        if "rt" in export_properties:
+            columns.append('retention time')
+        # Quick hack: TODO remove for loop
+        for export_property in export_properties:
+            if export_property == "peak_mz":
+                columns.append("peak_mz")
+            if export_property == "peak_rt":
+                columns.append("peak_rt")
+            if export_property == "peak_rt_start":
+                columns.append("peak_rt_start")
+            if export_property == "peak_rt_end":
+                columns.append("peak_rt_end")
+            if export_property == "peak_mz_min":
+                columns.append("peak_mz_min")
+            if export_property == "peak_mz_max":
+                columns.append("peak_mz_max")
+            if export_property == "label":
+                columns.append("label")
+            if export_property == "height":
+                columns.append("height")
+            if export_property == "area":
+                columns.append("area")
+            if export_property == "area_bc":
+                columns.append("area_bc")
+            if export_property == "sn":
+                columns.append("sn")
+        return columns
 
-    def export_to_dataframe(self, export_classes = ["High_quality", "Low_quality"], min_group_classes = ["High_quality"],min_group_size = 0.75, exclude = [], use_annotation = False, export_properties = ["rt", "mz", "height"]):
+
+    def export_to_dataframe(self, export_classes = ["High_quality", "Low_quality"], min_group_classes = ["High_quality", "Low_quality"],min_group_size = 0.15, exclude = [], use_annotation = False, export_properties = ["rt", "mz", "height"], long_format = True):
         total_sample_number = len(self.samples)
         # Set the minimum feature size (number of aligned peaks) for the feature to be kept
         if (0 < min_group_size <= 1):
@@ -170,10 +207,17 @@ class Experiment():
                     export_feature_collection_list.append(feature_collection)
         export_data = []
         for feature_collection in export_feature_collection_list:
-            feature_collection_data = feature_collection.export_data(sample_list = sample_list, export_classes = export_classes, use_annotation = use_annotation, export_properties = export_properties)
-            export_data.append(feature_collection_data)
+            feature_collection_data = feature_collection.export_data(sample_list = sample_list, export_classes = export_classes, use_annotation = use_annotation, export_properties = export_properties, long_format = long_format)
+            if long_format:
+                export_data = export_data + feature_collection_data
+            else:
+                export_data.append(feature_collection_data)
 
-        dataframe = pd.DataFrame(export_data)
+        if long_format:
+            columns = self.get_columns(export_properties)
+            dataframe = pd.DataFrame(export_data, columns = columns) 
+        else:
+            dataframe = pd.DataFrame(export_data)
 
         return dataframe
 

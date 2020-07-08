@@ -75,48 +75,98 @@ class FeatureCollection():
         return peak_count
 
 
-    def export_data(self, sample_list, export_classes, use_annotation, export_properties):
-        # ["rt", "mz", "peak_mz", "peak_rt", "peak_rt_start", "peak_rt_end", "peak_mz_min", "peak_mz_max", "label", "height", "area"]
-        data_dictionnary = dict()
+    def export_data(self, sample_list, export_classes, use_annotation, export_properties, long_format):
+        # ["rt", "mz", "peak_mz", "peak_rt", "peak_rt_start", "peak_rt_end", "peak_mz_min", "peak_mz_max", "label", "height", "area", "area_bc", "sn"]
+        if long_format:
+            feature_data_list = []
+            feature_id = self.id
+            for feature in self.feature_list:
+                sample_str = feature.sample.name
+                for peak in feature.peak_list:
+                    if peak.valid:
+                        if use_annotation and peak.annotation:
+                            label = peak.annotation.label
+                        else:
+                            label = peak.prediction.label
+                        # If label in export_classes we start adding info to list
+                        if label in export_classes:
+                            data_list = []
+                            data_list.append(feature_id)
+                            data_list.append(sample_str)
+                            if "mz" in export_properties:
+                                data_list.append(feature.mz)
+                            if "rt" in export_properties:
+                                data_list.append(feature.RT)
+                            for export_property in export_properties:
+                                if export_property == "peak_mz":
+                                    data_list.append(peak.mz)
+                                if export_property == "peak_rt":
+                                    data_list.append(peak.RT)
+                                if export_property == "peak_rt_start":
+                                    data_list.append(peak.rt_start)
+                                if export_property == "peak_rt_end":
+                                    data_list.append(peak.rt_end)
+                                if export_property == "peak_mz_min":
+                                    data_list.append(peak.mz_min)
+                                if export_property == "peak_mz_max":
+                                    data_list.append(peak.mz_max)
+                                if export_property == "label":
+                                    data_list.append(label)
+                                if export_property == "height":
+                                    data_list.append(peak.height)
+                                if export_property == "area":
+                                    data_list.append(peak.area)
+                                if export_property == "area_bc":
+                                    data_list.append(peak.area_baseline_corrected)
+                                if export_property == "sn":
+                                    data_list.append(peak.sn)
+                            feature_data_list.append(data_list)
+            return feature_data_list
+        else:
+            data_dictionnary = dict()
         if "mz" in export_properties:
             data_dictionnary["m/z"] = self.feature_list[0].mz
         if "rt" in export_properties:
             data_dictionnary["retention time"] = self.feature_list[0].RT
         for feature in self.feature_list:
-            sample_str = feature.sample.name
-            for peak in feature.peak_list:
-                if peak.valid:
-                    if (peak.monoisotopic is None) | (peak.monoisotopic is True):
-                        for export_property in export_properties:
-                            if export_property == "peak_mz":
-                                entry_str = ' '.join([sample_str,'Peak m/z'])
-                                data_dictionnary[entry_str] = peak.mz
-                            if export_property == "peak_rt":
-                                entry_str = ' '.join([sample_str,'Peak RT'])
-                                data_dictionnary[entry_str] = peak.RT
-                            if export_property == "peak_rt_start":
-                                entry_str = ' '.join([sample_str,'Peak RT start'])
-                                data_dictionnary[entry_str] = peak.rt_start
-                            if export_property == "peak_rt_end":
-                                entry_str = ' '.join([sample_str,'Peak RT end'])
-                                data_dictionnary[entry_str] = peak.rt_end
-                            if export_property == "peak_mz_min":
-                                entry_str = ' '.join([sample_str,'Peak m/z min'])
-                                data_dictionnary[entry_str] = peak.mz_min
-                            if export_property == "peak_mz_max":
-                                entry_str = ' '.join([sample_str,'Peak m/z max'])
-                                data_dictionnary[entry_str] = peak.mz_max
-                            if export_property == "label":
-                                entry_str = ' '.join([sample_str,'Peak label'])
-                                data_dictionnary[entry_str] = peak.prediction.label
-                                if use_annotation and peak.annotation:
-                                    data_dictionnary[entry_str] = peak.annotation.label
-                            if export_property == "height":
-                                entry_str = ' '.join([sample_str,'Peak height'])
-                                data_dictionnary[entry_str] = peak.height
-                            if export_property == "area":
-                                entry_str = ' '.join([sample_str,'Peak area'])
-                                data_dictionnary[entry_str] = peak.area
+            if feature.sample in sample_list:
+                sample_str = feature.sample.name
+                for peak in feature.peak_list:
+                    if peak.valid:
+                        if use_annotation and peak.annotation:
+                            label = peak.annotation.label
+                        else:
+                            label = peak.prediction.label
+                        if label in export_classes:
+                            if (peak.monoisotopic is None) | (peak.monoisotopic is True):
+                                for export_property in export_properties:
+                                    if export_property == "peak_mz":
+                                        entry_str = ' '.join([sample_str,'Peak m/z'])
+                                        data_dictionnary[entry_str] = peak.mz
+                                    if export_property == "peak_rt":
+                                        entry_str = ' '.join([sample_str,'Peak RT'])
+                                        data_dictionnary[entry_str] = peak.RT
+                                    if export_property == "peak_rt_start":
+                                        entry_str = ' '.join([sample_str,'Peak RT start'])
+                                        data_dictionnary[entry_str] = peak.rt_start
+                                    if export_property == "peak_rt_end":
+                                        entry_str = ' '.join([sample_str,'Peak RT end'])
+                                        data_dictionnary[entry_str] = peak.rt_end
+                                    if export_property == "peak_mz_min":
+                                        entry_str = ' '.join([sample_str,'Peak m/z min'])
+                                        data_dictionnary[entry_str] = peak.mz_min
+                                    if export_property == "peak_mz_max":
+                                        entry_str = ' '.join([sample_str,'Peak m/z max'])
+                                        data_dictionnary[entry_str] = peak.mz_max
+                                    if export_property == "label":
+                                        entry_str = ' '.join([sample_str,'Peak label'])
+                                        data_dictionnary[entry_str] = label
+                                    if export_property == "height":
+                                        entry_str = ' '.join([sample_str,'Peak height'])
+                                        data_dictionnary[entry_str] = peak.height
+                                    if export_property == "area":
+                                        entry_str = ' '.join([sample_str,'Peak area'])
+                                        data_dictionnary[entry_str] = peak.area
         return data_dictionnary
 
 
@@ -127,6 +177,9 @@ class FeatureTable():
 
     Contains the feature table input file and enable its loading.
     Automate the creation of features and features object.
+
+    Every feature table input format requires a specific class deirved 
+    from this general FeatureTable class with dedicated loading functions.
     """
 
     # Feature table counter to automatically assign feature table ids
@@ -376,6 +429,90 @@ class PeakonlyFeatureTable(FeatureTable):
                     sample.feature_list.append(feature)
                     # Add the feature to the feature collection (Only one feature per feature collection in this case)
                     feature_collection.feature_list.append(feature)
+            # Add the feature to the feature list (all peaks belonging to this feature have now been created)
+            self.feature_collection_list.append(feature_collection)
+        return None
+
+
+class XcmsFeatureTable(FeatureTable):
+
+    """
+    Inherits from FeatureTable.
+
+    XCMS specific feature table object.
+    Enable reading XCMS unaligned feature tables.
+    Aligned features not yet supported for XCMS
+    """
+
+    def __init__(self, feature_table_path=None, origin=None):
+        logger.info('Feature table format: XCMS')
+        super().__init__(feature_table_path, origin)
+
+
+    def load_feature_table(self):
+        feature_table_file_folder = pathlib.Path(self.feature_table_path)
+        if self.feature_table_path == None:
+            logger.error('Feature table path missing')
+            return None
+        # If the path is a directory (Unaligned peaks, one table per sample)
+        elif feature_table_file_folder.is_dir():
+            logger.error('Only .csv file is supported as XCMS feature table, directory given')
+            return None
+        else:
+            feature_table = pd.read_csv(self.feature_table_path)
+            self.feature_table = feature_table
+            return feature_table
+
+
+    def create_column_map(self, samples):
+        # XCMS input is long format, we only need to map the sample names
+        return None
+
+
+    def load_features(self, sample_list):
+        sample_map = dict()
+        for sample in sample_list:
+            sample_map[sample.file_name] = sample
+
+        feature_number = self.feature_table.shape[0]
+        i = 0
+        # Iterate through all features in the feature table
+        for index, row in self.feature_table.iterrows():
+            i += 1
+            # Extract feature specific information (mz and RT, RT is converted in seconds)
+            mz = row['mz']
+            RT = row['rt'] / 60
+            # No alignment, one feature per feature collection
+            feature_collection = FeatureCollection()
+            # Create feature (No secondary id)
+            sample = sample_map[row['sample_name']]
+            feature = Feature(mz, RT, sample, feature_collection=feature_collection)
+            peak_dict = dict(
+                sample = sample,
+                RT = RT, 
+                mz = mz,
+                rt_start = row['rtmin'] / 60,
+                rt_end = row['rtmax'] / 60,
+                mz_min = row['mzmin'],
+                mz_max = row['mzmax'],
+                height = row['maxo'],
+                area = row['into'],
+                area_bc = row['intb'],
+                sn = row['sn']
+            )      
+            # Create peak
+            new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
+                peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'])
+            # Add feature to the peak (one peak is attached to a unique feature)
+            new_peak.feature = feature
+            # Add the peak to the sample
+            sample.peak_list.append(new_peak)
+            # Add the peak to the feature
+            feature.peak_list.append(new_peak)
+            # Add the feature to the sample
+            sample.feature_list.append(feature)
+            # Add the feature to the feature collection (Only one feature per feature collection in this case)
+            feature_collection.feature_list.append(feature)
             # Add the feature to the feature list (all peaks belonging to this feature have now been created)
             self.feature_collection_list.append(feature_collection)
         return None

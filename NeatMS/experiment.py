@@ -40,6 +40,9 @@ class Experiment():
             # If the file format is .csv, use pymzml backend file reader
             # First check that raw files are indeed in .mzml format
             raw_file_type = set([file.suffix.lower() for file in self.raw_file_folder.iterdir()])
+            # Temporary fix: sometimes an empty suffix is present (probably due to temporary files) we discard it for now
+            # TODO: Create stable fix
+            raw_file_type.discard('')
             if len(raw_file_type) > 1:
                 logger.error('The raw file folder contains several file formats, only .mzml format is accepted')
                 return None

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import pathlib
 import logging
 
@@ -212,6 +213,7 @@ class MzmineFeatureTable(FeatureTable):
 
 
     def load_feature_table(self):
+        logger.info('Loading feature table and converting format')
         feature_table_file_folder = pathlib.Path(self.feature_table_path)
         if self.feature_table_path == None:
             logger.error('Feature table path missing')
@@ -228,88 +230,92 @@ class MzmineFeatureTable(FeatureTable):
                 sample_feature_table = pd.read_csv(feature_table_file)
                 # Join the table to the main dataframe
                 feature_table = feature_table.append(sample_feature_table, sort=False)
-                # feature_table = pd.concat([feature_table, sample_feature_table], axis=1, sort=False)
-            self.feature_table = feature_table.fillna(0)
-            return feature_table
+        # Else simply read the file
         else:
             feature_table = pd.read_csv(self.feature_table_path)
-            self.feature_table = feature_table
-            return feature_table
+        # Reindex the dataframe
+        feature_table = feature_table.reset_index(drop=True)
+        # Drop extra empty columns sometimes created by mzmine
+        feature_table = feature_table.dropna(how='all', axis=1)
+        # Replace all 0 values with NA
+        feature_table = feature_table.replace(0, np.nan)
+        # Add feature index column (Important: perform after NA replacement)
+        feature_table['Feature_ID'] = feature_table.index
+        # Create list with the new column names so we can change format (wide to long)
+        new_column_names = ['row m/z','row retention time']
+        test_list = ['end', 'max', 'min', 'start'] 
+        for column_name in feature_table.columns[2:-1]:
+            res = any(ele in column_name for ele in test_list)
+            split_column_name = column_name.split(' ')
+            split_column_name.append(split_column_name.pop(0))
+            if res:
+                ele = split_column_name[2]
+                split_column_name.remove(ele)
+                split_column_name.insert(1,ele)
+            new_column_name = str(' ').join(split_column_name)
+            new_column_names.append(new_column_name)
+        new_column_names.append('Feature_ID')
+        # Change column names
+        feature_table.columns = new_column_names
+        # Convert dataframe from wide to long
+        feature_table = pd.wide_to_long(feature_table, ["Peak m/z", "Peak RT", "Peak start RT", "Peak end RT","Peak height","Peak area","Peak min m/z","Peak max m/z"], i="Feature_ID", j="sample", sep=" ", suffix='.+')
+        # Remove all empty entries
+        feature_table = feature_table.dropna(how='all', axis=0, subset=["Peak m/z", "Peak RT", "Peak start RT", "Peak end RT","Peak height","Peak area","Peak min m/z","Peak max m/z"])
+        self.feature_table = feature_table
+        return feature_table
 
 
     def create_column_map(self, samples):
-        feature_samples = []
-        for column in self.feature_table.columns[2:]:
-            feature_samples.append(column.split('.')[0])
-
-        column_mapping = dict()
-        for sample in samples:
-            column_mapping[sample] = dict()
-
-        for column in self.feature_table.columns[2:]:
-            if 'Peak m/z' in column and column.split(' ')[-1] == 'm/z':
-                column_mapping[column.split('.')[0]]['mz'] = column
-            elif 'Peak RT' in column and column.split(' ')[-1] == 'RT':
-                column_mapping[column.split('.')[0]]['RT'] = column
-            elif 'Peak RT start' in column:
-                column_mapping[column.split('.')[0]]['rt_start'] = column
-            elif 'Peak RT end' in column:
-                column_mapping[column.split('.')[0]]['rt_end'] = column
-            elif 'Peak m/z min' in column:
-                column_mapping[column.split('.')[0]]['mz_min'] = column
-            elif 'Peak m/z max' in column:
-                column_mapping[column.split('.')[0]]['mz_max'] = column
-            elif 'Peak height' in column:
-                column_mapping[column.split('.')[0]]['height'] = column
-            elif 'Peak area' in column:
-                column_mapping[column.split('.')[0]]['area'] = column
-        self.column_map = column_mapping
-        return column_mapping
+        # Useless since we convert input to long format 
+        return None
 
 
     def load_features(self, sample_list):
-        feature_number = self.feature_table.shape[0]
+        sample_map = dict()
+        for sample in sample_list:
+            sample_map[sample.file_name] = sample
+
+        peak_number = self.feature_table.shape[0]
+        feature_number = self.feature_table.index.max()[0]
         i = 0
-        # Iterate through all features in the feature table
-        for index, row in self.feature_table.iterrows():
-            i += 1
-            # Extract feature specific information (mz and RT, RT is converted in seconds)
-            mz = row['row m/z']
-            RT = row['row retention time'] 
+
+        logger.info('Loading %d features and %d peaks ', feature_number, peak_number)
+
+        df_group = self.feature_table.groupby('Feature_ID')
+        for name, group in df_group:
             feature_collection = FeatureCollection()
-            # Iterate through all samples in the experiment
-            for sample in sample_list:
-                # Extract peak specific data for individual sample
+            for row_index, row in group.iterrows():
+                sample = sample_map[row_index[1]]
+                mz = row['row m/z']
+                RT = row['row retention time']
+                feature = Feature(mz, RT, sample, feature_collection=feature_collection)
                 peak_dict = dict(
                     sample = sample,
-                    RT = row[self.column_map[sample.name]['RT']], 
-                    mz = row[self.column_map[sample.name]['mz']],
-                    rt_start = row[self.column_map[sample.name]['rt_start']],
-                    rt_end = row[self.column_map[sample.name]['rt_end']],
-                    mz_min = row[self.column_map[sample.name]['mz_min']],
-                    mz_max = row[self.column_map[sample.name]['mz_max']],
-                    height = row[self.column_map[sample.name]['height']],
-                    area = row[self.column_map[sample.name]['area']]
+                    RT = row['Peak RT'], 
+                    mz = row['Peak m/z'],
+                    rt_start = row['Peak start RT'],
+                    rt_end = row['Peak end RT'],
+                    mz_min = row['Peak min m/z'],
+                    mz_max = row['Peak max m/z'],
+                    height = row['Peak height'],
+                    area = row['Peak area'],
                 )
-                # We do not save the peak if it does not exist in this sample (i.e. RT == 0 in table)
-                if peak_dict['RT'] != 0:
-                    # Create feature (No secondary id)
-                    feature = Feature(mz, RT, sample, feature_collection=feature_collection)
-                    # Create peak
-                    new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
-                        peak_dict['mz_max'], peak_dict['height'], peak_dict['area'])
-                    # Add feature to the peak (one peak is attached to a unique feature)
-                    new_peak.feature = feature
-                    # Add the peak to the sample
-                    sample.peak_list.append(new_peak)
-                    # Add the peak to the feature
-                    feature.peak_list.append(new_peak)
-                    # Add the feature to the sample
-                    sample.feature_list.append(feature)
-                    # Add the feature to the feature collection (Only one feature per feature collection in this case)
-                    feature_collection.feature_list.append(feature)
+                # Create peak
+                new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
+                    peak_dict['mz_max'], peak_dict['height'], peak_dict['area'])
+                # Add feature to the peak (one peak is attached to a unique feature)
+                new_peak.feature = feature
+                # Add the peak to the sample
+                sample.peak_list.append(new_peak)
+                # Add the peak to the feature
+                feature.peak_list.append(new_peak)
+                # Add the feature to the sample
+                sample.feature_list.append(feature)
+                # Add the feature to the feature collection
+                feature_collection.feature_list.append(feature)
             # Add the feature to the feature list (all peaks belonging to this feature have now been created)
             self.feature_collection_list.append(feature_collection)
+        logger.info('Feature table loaded with success')
         return None
 
 
@@ -474,8 +480,11 @@ class XcmsFeatureTable(FeatureTable):
         for sample in sample_list:
             sample_map[sample.file_name] = sample
 
-        feature_number = self.feature_table.shape[0]
+        peak_number = self.feature_table.shape[0]
+        feature_number = self.feature_table.index.max()
         i = 0
+
+        logger.info('Loading %d features and %d peaks ', feature_number, peak_number)
         # Iterate through all features in the feature table
         for index, row in self.feature_table.iterrows():
             i += 1
@@ -515,4 +524,5 @@ class XcmsFeatureTable(FeatureTable):
             feature_collection.feature_list.append(feature)
             # Add the feature to the feature list (all peaks belonging to this feature have now been created)
             self.feature_collection_list.append(feature_collection)
+        logger.info('Feature table loaded with success')
         return None

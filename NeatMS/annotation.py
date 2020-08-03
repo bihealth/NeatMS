@@ -131,7 +131,7 @@ class AnnotationTool():
         self.review = review
 
     def launch_annotation_tool(self):
-        from jupyter_plotly_dash import JupyterDash
+        from jupyter_dash import JupyterDash
 
         import dash
         import dash_core_components as dcc
@@ -177,12 +177,6 @@ class AnnotationTool():
         app = JupyterDash('NeatMS_annotation_tool')
 
         app.layout = html.Div(children=[
-            # Removed all useless default title and messages TODO: decide if we want to add anything
-            # html.H1(children='Peak classification app'),
-
-            # html.Div(children='''
-            #     Dash: A web application framework for Python.
-            # '''),
 
             dcc.Graph(
                 id='peak-graph',
@@ -193,7 +187,7 @@ class AnnotationTool():
                         id='input-class',
                         options=self.label_options,
                         value='Noise',
-                        labelStyle={'display': 'inline-block', 'text-align': 'justify', 'margin-right': '2%'} #THIS IS WHERE IT IS ADDED
+                        labelStyle={'display': 'inline-block', 'text-align': 'justify', 'margin-right': '2%'}
                     ),
                 ], style={'margin-bottom':'2%','textAlign': 'center'}),
                 html.Div([
@@ -225,7 +219,7 @@ class AnnotationTool():
         def create_line_plot(chromatogram, boundaries):
             return {
                 'data': [
-                        go.Line(x=chromatogram[0], y=chromatogram[1])
+                        go.Scatter(x=chromatogram[0], y=chromatogram[1], mode='lines')
                     ],
                 'layout': dict(
                         title= str('Peak %i - m/z: %.4f (%.4f-%.4f)' % (boundaries['id'], boundaries['mz'], boundaries['mz_min'], boundaries['mz_max'])),
@@ -371,5 +365,6 @@ class AnnotationTool():
                 class_value = 'Noise'
             return class_value
 
-        return app
+        # return app
+        app.run_server(mode='inline')
 

@@ -59,11 +59,11 @@ To follow the advanced tutorial and train your own model, you need to manually i
 
 * jupyter notebook
 * dash
-* jupyter\_plotly\_dash
+* jupyter-dash
 
 Just type: 
 
 ``` bash
-pip install notebook dash jupyter_plotly_dash
+pip install notebook dash jupyter-dash
 ```
 

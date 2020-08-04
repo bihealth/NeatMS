@@ -5,6 +5,8 @@ The module requires two types of input:
 * Raw data files in mzML format.
 * One feature table file in .csv format (multiple if peaks are not aligned).
 
+> *Currently, aligned peaks are only supported for mzMine. For XCMS, NeatMS only supports unaligned peaks.*
+
 ## Raw data in mzML
 
 Most vendor formats can be converted to mzML format using [msconvert from proteowizard](http://proteowizard.sourceforge.net/).
@@ -13,10 +15,12 @@ Most vendor formats can be converted to mzML format using [msconvert from proteo
 
 The feature table file format can be easily created from any peak detection pipeline. Below, we give instruction on how to create this csv file from mzMine2 and XCMS.
 
-### csv file structure
+> *File format differs between tools, please follow the instruction corresponding to the tool that you use to generate the feature table.*
 
-Every row represents a different peak found in one or more samples.
-The first two columns are sample independent and should contain the consensus m/z  and retention time of the peak across the samples. Every other column is sample specific, each sample requiring 8 columns with different information (m/z, RT, RT start, RT end, height, area, m/z min, m/z max). Expected column names are given below. Every sample present in the feature table should match the list of raw files present in the raw data folder. The value 0 is used when a peak is missing from a sample. 
+### mzMine csv file structure
+
+MzMine generates wide table format when exporting the features. Every row represents a different peak found in one or more samples.
+The first two columns are sample independent and should contain the consensus m/z  and retention time of the peak across the samples. Every other column is sample specific, each sample requiring 8 columns with different information (m/z, RT, RT start, RT end, height, area, m/z min, m/z max). Expected column names are given below. Every sample present in the feature table should match the list of raw files present in the raw data folder.
 
 Here is the list of headers for the first 10 columns as if we were importing a dataset containing one sample file named sample1.mzML.
 
@@ -31,22 +35,24 @@ Here is the list of headers for the first 10 columns as if we were importing a d
 * sample1.mzML Peak m/z min 
 * sample1.mzML Peak m/z max 
 
-An example file is available in the data folder of [NeatMS github repository](https://github.com/bihealth/NeatMS).
+An example files are available in the data folder of NeatMS github repository, example of a single file containing aligned peaks is available [here](https://github.com/bihealth/NeatMS/blob/master/data/test_data/aligned_features.csv). An example of unaligned feature tables is given [here](https://github.com/bihealth/NeatMS/blob/master/data/test_data/unaligned_features). More details on how to generate them is given below.
 
 ### Feature table export from mzMine 2.0
 
 The feature table can be exported before or after aligning peaks across samples. If exported before, one `.csv` file per sample should be created with the same names as the raw files, they should be all stored together in single folder. If exported after alignment, one `.csv` file is required under the name of your choice. The feature table file structure remains the same regardless of the alignment.
 
-After selecting the aligned peak list on the right side panel in mzMine2, you can access the export panel through *Peak list methods* > *Export/Import* > *Export to CSV file*.
+> *Important for aligned peaks: When importing the raw files in mzMine, the tool will attempt to detect and remove a common prefix from the raw file names (if it exists), make sure to disable it as the file names in the exported feature table will not match the actual raw file names anymore (you can also rename the raw files).*
 
-First, make sure the *Field separator* is `,`. 
+After selecting the aligned peak list on the right side panel in mzMine2, you can access the export panel through `Peak list methods` > `Export/Import` > `Export to CSV file`.
 
-Select the following elements in the *Export common elements* panel:
+First, make sure the `Field separator` is `,`. 
+
+Select the following elements in the `Export common elements` panel:
 
 * Export row m/z
 * Export row retention time
 
-Select the following in the *Export data file elements* panel:
+Select the following in the `Export data file elements` panel:
 
 * Peak m/z 
 * Peak RT 
@@ -61,6 +67,54 @@ Make sure to unselect any other element and click OK. Your feature table file is
 
 MZmine2 also provides filtering options, we recommend to not filter the peaks at this stage as it can be done in NeatMS, but doing it now will not impact on NeatMS usage.
 
+### XCMS csv file structure
+
+As mentioned above, XCMS file structure is different from mzMine. XCMS feature table is expected to be in long format. Only one .csv file is required even if peaks are not aligned. It requires the following information which is available by default in the `XCMSnExp` **R** object after peak detection.
+
+Expected columns:
+
+* mz
+* mzmin
+* mzmax
+* rt
+* rtmin
+* rtmax
+* into
+* intb
+* maxo
+* sn
+* sample
+* sample_name
+
+> *For more details on the information contained in each variable, please refer to XCMS documentation.*
+
 ### Feature table export from XCMS
 
-Instruction coming soon.
+The feature table can be reconstructed in many different ways using **R**, here is snippet that uses `dplyr` to generate the desired format. The main task is to bring the filenames into the dataframe.
+
+``` R
+# This code assumes that the xdata variable corresponds to the XCMSnExp object that contains the detected peaks 
+
+# Load dplyr (required for left_join())
+library(dplyr)
+
+# Create the peak dataframe
+feature_dataframe <- as.data.frame(chromPeaks(xdata))
+
+# Retrieve the sample names
+sample_names_df <- as.data.frame(sampleNames(xdata))
+
+# Create a "sample_name" column in the peak dataframe
+colnames(sample_names_df) <- c("sample_name")
+
+# Generate the correct sample ids for matching purposes
+sample_names_df$sample <- seq.int(nrow(sample_names_df))
+
+# Attach the sample names to the main dataframe
+feature_dataframe <- left_join(feature_dataframe,sample_names_df, by="sample")
+
+# Export the data as csv. Note: Set row.names to FALSE as NeatMS does not need them
+file_path <- "path/to/the/unaligned_feature_table.csv"
+write.csv(feature_dataframe,file_path, row.names = FALSE)
+
+```

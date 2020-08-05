@@ -1,24 +1,28 @@
 # Neural network training
 
-This section requires to have some basic theoritical knowledge on neural networks but also some practical experience. Although, NeatMS `Neural newtork handler` simplifies greatly the entire training process, it is important that you understand the basic concepts of deep learning so the model that you create will perform well. Keep in mind that having an under performing model could have a big impact on your metabolomics study results and their interpretation.  
+This section requires to have some basic theoritical knowledge on neural networks but also some practical experience. Although, NeatMS `Neural newtork handler` simplifies greatly the entire training process, it is important that you understand the basic concepts of deep learning so the model that you create will perform well. **Keep in mind that having an under performing model could have a big impact on your metabolomics study results and their interpretation.** 
 
 ## Batch creation
 
-Now that you feel confident with neural network training, let's dive in prepare our batches.
+Now that you feel confident with neural network training, let's dive in and prepare our batches.
 NeatMS provides the necessary functions to do that, all we will have to do is create a `Neural network handler` object and call the batch creation method.
 
 ``` python
-nn_handler = ntms.NN_handler(experiment,  matrice_size=120, margin=1)
+nn_handler = ntms.NN_handler(experiment,  matrice_size=120, margin=1, min_scan_num=5)
 ```
-As you can see we have given two more arguments than we did in the basic tutorial, you can leave them out if you want to use the default values of `120` and `1`. 
+As you can see we have given three more arguments than we did in the basic tutorial, you can leave them out if you want to use the default values of `120`, `1` and `5`. 
 
-The matrix size argument is simple, it represents the number of points used to represent a peak. As for the margin, it represent the size of the surrounding signal that should be kept on the retention time dimesnion. `1` means that the margin size on both side of the peak will be 100% of the peak width. For example, if a peak has a retention time width of 3 seconds, the extracted signal will be of 9 seconds. This is then interpolated to form a matrix of size (1, 120). With the default argument values, the first and last 40 values of the peak will represent the margins (surrounding signal), the middle 40 values represent the peak itself.
+The matrix size argument is simple, it represents the number of points used to represent a peak. As for the margin, it represent the size of the surrounding signal that should be kept on the retention time dimesnion. `1` means that the margin size on both side of the peak will be the same size of the peak width. For example, if a peak has a retention time width of 3 seconds, the extracted signal will be of 9 seconds. This is then interpolated to form a matrix of size (1, 120). With the default argument values, the first and last 40 values of the peak will represent the margins (surrounding signal), the middle 40 values represent the peak itself.
 
 A second dimension containing binary values (0 or 1) is then added to represent the margin protion of the signal (0), or the peak signal (1). The resulting matrix size for one peak is therefore (2, 120).
 
-> Note that if you decide to change the matrix size or margin argument, the neural network architecture will be automatically adapted. You will, however, only be able to train your model from scratch, by transfer learning using a preexisting model with the same architecture. Do not change the arguments if you intend to use the default model provided with NeatMS for transfer learning.
+> *Note that if you decide to change the matrix size or margin argument, the neural network architecture will be automatically adapted. You will, however, only be able to train your model from scratch, or using transfer learning on a preexisting model with the same architecture. Do not change the arguments if you intend to use the default model provided with NeatMS for transfer learning.*
  
-We can now create our batches of data, 3 batches are required, one for training, one for testing and one for validation. This type of approach is standard will allow us to detect any overfitting, the training and test set will be used during the training process. The validation set remains untouch and is used later on for hyperparameter tuning.
+Finally, `min_scan_number` argument will filter out all peaks that have a number of point (scan) lower than this value. `5` is the default value because, even manualy, it is difficult to juge if a signal is a peak when it has less than 5 points. And any model, like the person who trained it, will likely under perform for those peaks. This argument has no impact on the model architecture and can be changed when using any model.
+
+> *When using an existing model, we stronlgy advise not to lower the `min_scan_number` parameter. Increasing it is however not a problem.*
+ 
+We can now create our batches of data, 3 batches are required, one for training, one for testing and one for validation. This type of approach is standard and will allow us to detect any overfitting, the training and test set will be used during the training process. The validation set remains untouch and is used later on for hyperparameter tuning.
 
 ``` python
 nn_handler.create_batches(validation_split=0.1, normalise_class=False)
@@ -34,28 +38,30 @@ We have 2 options to train the model, training the full model from scratch is th
 
 ### Full model training
 
-When choosing this option, we recommend that you have at least 500 peaks for each class (or 500 peaks in the smallest class). If you have fewer peaks, you should consider the [transfer learning](#transfer-learning) option instead.
+When choosing this option, we recommend that you have at the very least 500 peaks for each class (or 500 peaks in the smallest class). If you have fewer peaks, you should consider the [transfer learning](#transfer-learning) option instead.
 
-We do not need to load a pre-existing model here, but we can change NeatMS allows changing the learning rate and optimizer. You have the choice between `Adam` (default) and `SGD` optimzers. During development and testing, best performances were achieved using the `Adam` optimizer and a learning rate of `0.00001`, those values are therefore set as default. Make sure to leave the `model` argument as `None`. You are then ready to train the model.
+We do not need to load a pre-existing model here, NeatMS allows changing the learning rate and optimizer. You have the choice between `Adam` (default) and `SGD` optimzers. During development and testing, best performances were achieved using the `Adam` optimizer and a learning rate of `0.00001`, those values are therefore set as default. Make sure to leave the `model` argument as `None`. You are then ready to train the model.
 
 ``` python
 nn_handler.create_model(lr=0.00001, optimizer='Adam')
 nn_handler.train_model(1000)
 ```
 
-The number of `epochs` can be set when calling the training method (1000 by default). NeatMS does not currently provides callback functions to automatically stop the training. Calling the training method will simply resume the training and train for another specified number of epochs. The network architecture has been built to specificaly prevent overfitting (using dropout and kernel regularizer), however, it is down to you to make sure overfitting does not occur.
+The number of `epochs` can be set when calling the training method (1000 by default). NeatMS does not currently provides callback functions to automatically stop the training. Calling the training method will simply resume the training and train for another specified number of epochs. The network architecture has been built to specificaly prevent overfitting (using dropout and kernel regularizer), however, it is down to you to make sure overfitting does not occur. 1000 epochs may not be enough to train your model, you can call the `train_model` function several times or set a higher number of epochs the first time. When you see no increase in the accuracy of the training and test set, you can stop the training.
 
-Once training done, which will take a few minutes to an hour depending the compouting power you have, you are ready to move on to the [tuning part](hyperparameter-optimization.md). 
+> *If your training set reach an accuracy close to 100% and your test (called validation in Tensorflow output) is far behind, this is a clear indication of overfitting. Using the default architecture and parameters, this never happened in our hands but should be closely monitored.*
+
+Once training is done, which will take a few minutes to an hour depending the compouting power you have, you are ready to move on to the [tuning part](hyperparameter-optimization.md). 
 
 ### Transfer learning
 
 If you have labelled a few hundreds peaks from your dataset and would like to tune an existing model, this is the right place. Before we dig any further, it is important to understand the archicture of the network we are dealing with. 
 
-The network is made of a convolutional base and a classifier. The convolutional base performs the feature extraction, and the classifier the classification. Here, we will have the option to adjust the entire network, or only train one part of it. 
+The network is made of a convolutional base and a classifier. The convolutional base performs the feature extraction, and the classifier the classification (okay, that one is obvious). Here, we will have the option to adjust the entire network, or only train parts of it. 
 
 For example, if I have a very small dataset and I only want to adjust the classification of peaks to what I would manually do, I can make use of the convolutional base which is already trained to extract features and freeze those layers, and fine tune the classifier part only to fit my classification. 
 
-> The part of the network you choose to fine tune is down to you, however, fine tuning the convolutional base will require more data than fine tuning the classifier.
+> *The part of the network you choose to fine tune is down to you, however, fine tuning the convolutional base will require a bigger dataset than what you need to fine tune the classifier.*
 
 First, we will load the existing model the same way we did in the basic use section.
 
@@ -63,7 +69,7 @@ First, we will load the existing model the same way we did in the basic use sect
 nn_handler.create_model(model = "path_to_model.h5")
 ```
 
-Now that we have our model loaded, we have several options as previously discussed. To train the entire network you can directly call the training function `nn_handler.train_model()`. Otherwise, let see how we can explore the network architecture to select the layers we want to freeze.
+Now that we have our model loaded, we have several options as previously discussed. To train the entire network you can directly call the training function `nn_handler.train_model()`. Otherwise, let see how we can explore the network architecture to select the layers we want to freeze/train.
 
 The model architecture can be seen like so:
 
@@ -96,7 +102,7 @@ Non-trainable params: 0
 _________________________________________________________________
 ``` 
 
-The model itself is stored in the `nn_handler.class_model` variable, we can select and freeze layers using the following commands (Note that these are Keras functions). 
+The model itself is stored in the `nn_handler.class_model` variable, we can select and freeze layers using the following commands (Note that these are Keras core functions, refer to the Keras documentation for more details). 
 
 ``` python
 # Let's freeze the convolutional base
@@ -106,6 +112,7 @@ for layer_name in layer_names:
 	model.get_layer(layer_name).trainable = False
 	
 # Or using their position in the network (Here we freeze the first 4 layers)
+# It is the same as above as the input is considered a layer with no parameters
 for layer in nn_handler.class_model.layers[:4]:
 	layer.trainable = False
 	
@@ -131,7 +138,7 @@ lr = 0.00001
 opt = Adam(lr=lr)
 nn_handler.class_model.compile(loss = "categorical_crossentropy", optimizer = opt, metrics=['accuracy','mae'])
 ```
-You are now ready to train the model.
+You are now ready to train the model (See full model training section for details).
 
 ``` python
 # Remember you can pass the number of epochs as an argument

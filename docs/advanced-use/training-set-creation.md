@@ -13,8 +13,9 @@ Before launching the tool and start labelling peaks, we need to create our exper
 ``` python
 raw_data_folder_path = 'path/to/raw_data/folder'
 feature_table_path = 'path/to/feature_table'
+input = 'mzmine' # You can also set this to 'xcms' 
 
-experiment = ntms.Experiment(raw_data_folder_path, feature_table_path)
+experiment = ntms.Experiment(raw_data_folder_path, feature_table_path, input)
 ```
 
 We are now ready to launch the annotation tool!
@@ -50,3 +51,5 @@ annotation_tool.launch_annotation_tool()
 ``` 
 
 Once all peaks from the specified labels have been reviewed, the tool automatically goes back to its default mode and will give you randomly selected peaks to label.
+
+> *You can close and restart the annotation tool as many times as you like, the annotation are stored in memory and attached to the experiment object, the annotation tool itself does not store any data. Restarting the annotation tool will just resume the annotation process were you left it.*   

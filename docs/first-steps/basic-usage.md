@@ -6,20 +6,22 @@ The code discussed in this section of the documentation is the same as the basic
 
 The main class of our module is the Experiment. Creating an experiment object will allow us to load the input data and access every function from the module.
 
-In order to create an experiment object, we need to set 2 parameters:
+In order to create an experiment object, we need to set 3 parameters:
  
 * The path to the raw data folder
-* The path to the feature table (.csv)
+* The path to the feature table (.csv) or the feature tables folder  
+* The peak detection tool (mzmine or xcms)
 
 ``` python
 raw_data_folder_path = 'path/to/raw_data/folder'
 feature_table_path = 'path/to/feature_table'
+input = 'mzmine'
 ```
 
-We can now create an experiment which will automatically load the raw data and the features, and structure the information so we can explore it easily.
+We can now create an experiment which will automatically load the raw data and the features, and structure the data so we can explore and manipulate it easily.
 
 ``` python
-experiment = ntms.Experiment(raw_data_folder_path, feature_table_path)
+experiment = ntms.Experiment(raw_data_folder_path, feature_table_path, input)
 ```
 
 ## First data exploration
@@ -183,6 +185,31 @@ Number of consensus features labeled as 'High quality':
 
 This tells us that 2311 features have been labeled as high quality in 3 samples, 1941 in 6 samples and 1555 in 4 samples. The number of peaks labeled as `high quality` in all samples rarely exceed a few hundreds, this is totally normal as a peak missing in one sample or simply presenting a poor shape would not qualify and make this number drop. But it does not mean we are facing bad quality data or that the peak picking did not perform well. For example, if you included blank samples in your experiment, it is likely that you will find very few `high quality` peaks present in all samples, and the ones you will find are probably contaminants anyway. So to make sure that we export the right data, filter out the bad quality data, but also structure our output occording to the statistical analysis we want to perform, it is important to understand all options the export method has to offer!
 
+### Basic export
+
+To export the data into a csv file, simply call the `export` function, passing the filename you would like to use. The default information exported is:
+
+* peak rt
+* peak mz
+* peak height
+* peak area
+* peak label (predicted by NeatMS)
+
+To add more information to the exported table, use the `export_properties` argument (see below for usage).
+
+``` python
+filename = "my_neatmn_output.csv"
+experiment.export_csv(filename)
+```
+
+If you prefer to export the data into a pandas dataframe, call the following function:
+
+``` python
+my_dataframe = experiment.export_to_dataframe()
+```
+
+> By default, no filter is applied so you can use the exported label information to filter the data using your prefered approach in the language that you want. However, many optional parameters exist to filter the peaks exported to the output table. See below for details on export options.
+
 ### Export method
 
 That's the last part of the basic usage section but maybe the most important one. Although default values are already set for us, using those blindy is probably not a good idea. The export method can take many arguments to allow high flexibility and fine tuning on what we want to conserve in our exported results, let's take the time to review them.
@@ -292,7 +319,7 @@ export_properties
 **Default values:**
 
 ``` python
-["rt", "mz", "height"]
+["rt", "mz", "height", "area", "label"]
 ```
 
 List of peak properties to be exported. Every property will appear as one column in the final csv file unless otherwise specified below. Here is the list of possible export properties:

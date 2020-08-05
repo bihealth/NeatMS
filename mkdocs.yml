@@ -13,6 +13,7 @@ nav:
     - Save function: advanced-use/save-function.md
     - Neural network training: advanced-use/neural-network-training.md
     - Hyperparameter optimization: advanced-use/hyperparameter-optimization.md
+    - Save model: advanced-use/save-model.md
 theme: readthedocs
 # markdown_extensions:
 #   - codehilite

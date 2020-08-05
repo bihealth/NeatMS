@@ -90,10 +90,11 @@ Expected columns:
 
 ### Feature table export from XCMS
 
-The feature table can be reconstructed in many different ways using **R**, here is snippet that uses `dplyr` to generate the desired format. The main task is to bring the filenames into the dataframe.
+The feature table can be reconstructed in many different ways using **R**, here is snippet that uses `dplyr` to generate the desired format. The main task is to bring the filenames into the dataframe and store in the `sample_name` column.
 
 ``` R
-# This code assumes that the xdata variable corresponds to the XCMSnExp object that contains the detected peaks 
+# This code assumes that the xdata variable corresponds 
+# to the XCMSnExp object that contains the detected peaks 
 
 # Load dplyr (required for left_join())
 library(dplyr)
@@ -101,20 +102,24 @@ library(dplyr)
 # Create the peak dataframe
 feature_dataframe <- as.data.frame(chromPeaks(xdata))
 
-# Retrieve the sample names
+# Retrieve the sample names and store it as a dataframe
 sample_names_df <- as.data.frame(sampleNames(xdata))
 
-# Create a "sample_name" column in the peak dataframe
+# Rename the unique column "sample_name"
 colnames(sample_names_df) <- c("sample_name")
 
 # Generate the correct sample ids for matching purposes
+# XCMS sampleNames() function returns sample names ordered by their ids
 sample_names_df$sample <- seq.int(nrow(sample_names_df))
 
-# Attach the sample names to the main dataframe
+# Attach the sample names to the main dataframe by matching ids (sample column)
 feature_dataframe <- left_join(feature_dataframe,sample_names_df, by="sample")
 
-# Export the data as csv. Note: Set row.names to FALSE as NeatMS does not need them
+# Export the data as csv. 
+# Note: Set row.names to FALSE as NeatMS does not need them
 file_path <- "path/to/the/unaligned_feature_table.csv"
 write.csv(feature_dataframe,file_path, row.names = FALSE)
 
 ```
+
+> *When using your own code to reconstruct the dataframe, make sure to respect the correct order of the samples by matching the correct sample id to the correct sample name*

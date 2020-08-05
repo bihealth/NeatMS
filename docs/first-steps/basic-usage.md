@@ -15,13 +15,13 @@ In order to create an experiment object, we need to set 3 parameters:
 ``` python
 raw_data_folder_path = 'path/to/raw_data/folder'
 feature_table_path = 'path/to/feature_table'
-input = 'mzmine'
+input_data = 'mzmine'
 ```
 
 We can now create an experiment which will automatically load the raw data and the features, and structure the data so we can explore and manipulate it easily.
 
 ``` python
-experiment = ntms.Experiment(raw_data_folder_path, feature_table_path, input)
+experiment = ntms.Experiment(raw_data_folder_path, feature_table_path, input_data)
 ```
 
 ## First data exploration

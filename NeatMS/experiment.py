@@ -180,14 +180,14 @@ class Experiment():
         return columns
 
 
-    def export_to_dataframe(self, export_classes = ["High_quality", "Low_quality"], min_group_classes = ["High_quality", "Low_quality"],min_group_size = 0.15, exclude = [], use_annotation = False, export_properties = ["rt", "mz", "height"], long_format = True):
+    def export_to_dataframe(self, export_classes = ["High_quality", "Low_quality","Noise"], min_group_classes = ["High_quality", "Low_quality","Noise"],min_group_size = 0, exclude = [], use_annotation = False, export_properties = ["rt", "mz", "height","area","label"], long_format = True):
         total_sample_number = len(self.samples)
         # Set the minimum feature size (number of aligned peaks) for the feature to be kept
         if (0 < min_group_size <= 1):
             min_group_size = min_group_size * total_sample_number
         # Adjust the number to 1 if "min_group_size == 0", most conservative option
-        if min_group_size == 0:
-            min_group_size = 1
+        # if min_group_size == 0:
+        #     min_group_size = 1
         # If the exclusion list is not empty
         if len(exclude) > 0:
             sample_list = []
@@ -205,7 +205,7 @@ class Experiment():
             if len(feature_collection.feature_list) >= min_group_size:
                 # Get the number of peak predicted (annotated) with the target classes
                 peak_count = feature_collection.get_monoisotopic_peak_number(prediction_class=min_group_classes, use_annotation=use_annotation)
-                if peak_count >= min_group_size:
+                if (peak_count > 0) and (peak_count >= min_group_size):
                     # Add the feature collection to the export list
                     export_feature_collection_list.append(feature_collection)
         export_data = []
@@ -225,7 +225,7 @@ class Experiment():
         return dataframe
 
 
-    def export_csv(self, filename, index=True, na_rep='', export_classes = ["High_quality", "Low_quality"], min_group_classes = ["High_quality"], min_group_size = 0.75, exclude = [], use_annotation = False, export_properties = ["rt", "mz", "height"]):
+    def export_csv(self, filename, index=True, na_rep='', export_classes = ["High_quality", "Low_quality", "Noise"], min_group_classes = ["High_quality", "Low_quality", "Noise"], min_group_size = 0, exclude = [], use_annotation = False, export_properties = ["rt", "mz", "height","area","label"]):
         dataframe = self.export_to_dataframe(export_classes, min_group_classes, min_group_size, exclude, use_annotation, export_properties)
         dataframe.to_csv(filename, index=index, na_rep=na_rep)
         file_path = pathlib.Path(filename)

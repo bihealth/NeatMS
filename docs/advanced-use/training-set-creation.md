@@ -13,9 +13,9 @@ Before launching the tool and start labelling peaks, we need to create our exper
 ``` python
 raw_data_folder_path = 'path/to/raw_data/folder'
 feature_table_path = 'path/to/feature_table'
-input = 'mzmine' # You can also set this to 'xcms' 
+input_data = 'mzmine' # You can also set this to 'xcms' 
 
-experiment = ntms.Experiment(raw_data_folder_path, feature_table_path, input)
+experiment = ntms.Experiment(raw_data_folder_path, feature_table_path, input_data)
 ```
 
 We are now ready to launch the annotation tool!

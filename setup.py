@@ -2,13 +2,13 @@ from distutils.core import setup
 setup(
   name = 'NeatMS',
   packages = ['NeatMS'],
-  version = 'v0.5',
+  version = 'v0.6',
   license='MIT', 
-  description = 'NeatMS is an open source python package for untargeted LCMS signal labelling and filtering', 
+  description = 'NeatMS is an open source python package for untargeted LCMS deep learning peak curation', 
   author = 'Yoann Gloaguen', 
   author_email = 'yoann.gloaguen@mdc-berlin.de', 
   url = 'https://github.com/bihealth/NeatMS', 
-  download_url = 'https://github.com/bihealth/NeatMS/archive/v0.5.tar.gz',
+  download_url = 'https://github.com/bihealth/NeatMS/archive/v0.6.tar.gz',
   keywords = ['LCMS', 'Classifier', 'Peak', 'Neural network'], 
   install_requires=[ 
           'pymzml',

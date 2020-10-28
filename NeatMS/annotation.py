@@ -19,6 +19,25 @@ class Annotation():
         Annotation.annotation_counter += 1
 
 
+class Prediction():
+
+    """
+    Representation of a label
+
+
+    Contains a list of peaks which have been assigned a specific label
+    """
+
+    # Prediction counter to automatically assign prediction ids
+    prediction_counter = 0
+
+    def __init__(self, label):
+        self.id = Prediction.prediction_counter
+        self.label = label
+        self.peaks = []
+        Prediction.prediction_counter += 1
+
+
 class AnnotationTable():
 
     """
@@ -37,6 +56,7 @@ class AnnotationTable():
         self.labelled_peaks = []
         self.unlabelled_peaks = self.create_unlabelled_peak_list()
         self.annotations = self.create_annotation_objects(labels)
+        self.predictions = self.create_prediction_objects(labels)
         AnnotationTable.annotation_table_counter += 1
 
     def create_annotation_objects(self, labels):
@@ -45,6 +65,15 @@ class AnnotationTable():
             annotation = Annotation(label)
             annotations.append(annotation)
         return annotations
+
+
+    def create_prediction_objects(self, labels):
+        predictions = []
+        for label in labels:
+            prediction = Prediction(label)
+            predictions.append(prediction)
+        return predictions
+
 
     def create_unlabelled_peak_list(self, monoisotopic_only=False):
         if self.feature_table:
@@ -75,6 +104,15 @@ class AnnotationTable():
         print("No annotation with the label exist!")
         return None
 
+
+    def get_prediction(self, label):
+        for prediction in self.predictions:
+            if prediction.label == label:
+                return prediction
+        print("No prediction with the label exist!")
+        return None
+
+
     def set_peak_label(self, peak, label):
         # If the peak already has an annotation
         if peak.annotation:
@@ -102,7 +140,7 @@ class AnnotationTable():
             peak.preditcion.peaks.remove(peak)
             # We do not remove the prediction from the peak as it will be replaced by the new one
         # Get the new annotation object using the label 
-        prediction = self.get_annotation(label)
+        prediction = self.get_prediction(label)
         # Assign it to the peak as prediction
         peak.prediction = prediction
         # Add the peak to the annotation object peak list
@@ -130,7 +168,7 @@ class AnnotationTool():
         # List of classes to review, if the list is not empty, review mode is considered 'ON'
         self.review = review
 
-    def launch_annotation_tool(self):
+    def launch_annotation_tool(self, host = '127.0.0.1'):
         from jupyter_dash import JupyterDash
 
         import dash
@@ -366,5 +404,5 @@ class AnnotationTool():
             return class_value
 
         # return app
-        app.run_server(mode='inline')
+        app.run_server(mode='inline', host = host)
 

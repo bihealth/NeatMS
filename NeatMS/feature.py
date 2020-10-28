@@ -481,48 +481,83 @@ class XcmsFeatureTable(FeatureTable):
             sample_map[sample.file_name] = sample
 
         peak_number = self.feature_table.shape[0]
-        feature_number = self.feature_table.index.max()
         i = 0
 
+        # Check if feature_id is present in the dataframe (have peaks been aligned)
+        if 'feature_id' not in self.feature_table.columns:
+            # Peaks have not been aligned
+            logger.info('Feature table contains unaligned peaks')
+            # Create an incremental feature_id column
+            self.feature_table['feature_id'] = self.feature_table.index
+            # Get the number of features (should be equal to the number of peaks)
+            feature_number = self.feature_table['feature_id'].unique().size
+        else:
+            # Peaks have been aligned
+            logger.info('Feature table contains aligned peaks')
+            # Set -1 for peaks that have NA in feature_id (unaligned peaks)
+            self.feature_table.loc[:,'feature_id'] = self.feature_table.loc[:,'feature_id'].fillna(value=-1)
+            # Get the number of features (== number of unique feature_id (-1) + number of features with feature_id == -1)
+            feature_number = self.feature_table['feature_id'].unique().size + self.feature_table[self.feature_table['feature_id'] == -1].shape[0] - 1
+
         logger.info('Loading %d features and %d peaks ', feature_number, peak_number)
-        # Iterate through all features in the feature table
-        for index, row in self.feature_table.iterrows():
-            i += 1
-            # Extract feature specific information (mz and RT, RT is converted in seconds)
-            mz = row['mz']
-            RT = row['rt'] / 60
-            # No alignment, one feature per feature collection
-            feature_collection = FeatureCollection()
-            # Create feature (No secondary id)
-            sample = sample_map[row['sample_name']]
-            feature = Feature(mz, RT, sample, feature_collection=feature_collection)
-            peak_dict = dict(
-                sample = sample,
-                RT = RT, 
-                mz = mz,
-                rt_start = row['rtmin'] / 60,
-                rt_end = row['rtmax'] / 60,
-                mz_min = row['mzmin'],
-                mz_max = row['mzmax'],
-                height = row['maxo'],
-                area = row['into'],
-                area_bc = row['intb'],
-                sn = row['sn']
-            )      
-            # Create peak
-            new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
-                peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'])
-            # Add feature to the peak (one peak is attached to a unique feature)
-            new_peak.feature = feature
-            # Add the peak to the sample
-            sample.peak_list.append(new_peak)
-            # Add the peak to the feature
-            feature.peak_list.append(new_peak)
-            # Add the feature to the sample
-            sample.feature_list.append(feature)
-            # Add the feature to the feature collection (Only one feature per feature collection in this case)
-            feature_collection.feature_list.append(feature)
-            # Add the feature to the feature list (all peaks belonging to this feature have now been created)
-            self.feature_collection_list.append(feature_collection)
+
+        # Group peaks by feature_id (handle features with id == -1 separately)
+        df_group = self.feature_table.groupby('feature_id')
+        for name, group in df_group:
+            # If it is an aligned feature, create FeatureCollection object now
+            if name != -1:
+                feature_collection = FeatureCollection()
+            df_feature = group.groupby('sample')
+            for sample_name, feature_group in df_feature:
+                create_feature = True
+                for index, row in feature_group.iterrows():
+                    i += 1
+                    # Extract feature specific information (mz and RT, RT is converted in seconds)
+                    mz = row['mz']
+                    RT = row['rt'] / 60
+                    # If it is an unaligned feature, create FeatureCollection object now (will contain only one feature)
+                    if name == -1:
+                        # No alignment, one feature per feature collection
+                        feature_collection = FeatureCollection()
+                    # Create feature (No secondary id)
+                    sample = sample_map[row['sample_name']]
+                    if create_feature or name == -1:
+                        feature = Feature(mz, RT, sample, feature_collection=feature_collection)
+                    peak_dict = dict(
+                        sample = sample,
+                        RT = RT, 
+                        mz = mz,
+                        rt_start = row['rtmin'] / 60,
+                        rt_end = row['rtmax'] / 60,
+                        mz_min = row['mzmin'],
+                        mz_max = row['mzmax'],
+                        height = row['maxo'],
+                        area = row['into'],
+                        area_bc = row['intb'],
+                        sn = row['sn']
+                    )      
+                    # Create peak
+                    new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
+                        peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'])
+                    # Add feature to the peak (one peak is attached to a unique feature)
+                    new_peak.feature = feature
+                    # Add the peak to the sample
+                    sample.peak_list.append(new_peak)
+                    # Add the peak to the feature
+                    feature.peak_list.append(new_peak)
+                    # Add the feature to the sample
+                    if create_feature or name == -1:
+                        sample.feature_list.append(feature)
+                        # Add the feature to the feature collection (Only one feature per feature collection in this case)
+                        feature_collection.feature_list.append(feature)
+                        create_feature = False
+                     # If it is an unaligned feature we add the feature collection containing only 1 feature to the list
+                    if name == -1:
+                        # Add the feature to the feature list (all peaks belonging to this feature have now been created)
+                        self.feature_collection_list.append(feature_collection)
+            # If it is an aligned feature, the feature collection needs to be added to the list
+            if name != -1:
+                # Add the feature to the feature list (all peaks belonging to this feature have now been created)
+                self.feature_collection_list.append(feature_collection)
         logger.info('Feature table loaded with success')
         return None

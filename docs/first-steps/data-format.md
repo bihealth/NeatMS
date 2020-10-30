@@ -5,7 +5,7 @@ The module requires two types of input:
 * Raw data files in mzML format.
 * One feature table file in .csv format (multiple if peaks are not aligned).
 
-> *Currently, aligned peaks are only supported for mzMine. For XCMS, NeatMS only supports unaligned peaks.*
+> *Update, form version 0.7 aligned peaks are also supported with XCMS. See Feature table export from XCMS for more information.*
 
 ## Raw data in mzML
 
@@ -85,10 +85,11 @@ Expected columns:
 * sn
 * sample
 * sample_name
+* feature_id (only required if peaks have been aligned)
 
 > *For more details on the information contained in each variable, please refer to XCMS documentation.*
 
-### Feature table export from XCMS
+### Feature table export from XCMS (unaligned peaks)
 
 The feature table can be reconstructed in many different ways using **R**, here is snippet that uses `dplyr` to generate the desired format. The main task is to bring the filenames into the dataframe and store in the `sample_name` column.
 
@@ -123,3 +124,69 @@ write.csv(feature_dataframe,file_path, row.names = FALSE)
 ```
 
 > *When using your own code to reconstruct the dataframe, make sure to respect the correct order of the samples by matching the correct sample id to the correct sample name*
+ 
+ 
+### Feature table export from XCMS (aligned peaks)
+
+Here we can use the same code as above to get the peak specific information, but we will add the alignment (and grouping) information to the dataframe. This obviously assumes that you have aligned your peaks across samples and/or grouped peaks within samples. 
+
+```
+# The first part of the code is the same as for unaligned peaks, you can jump to the feature information addition 
+
+# This code assumes that the xdata variable corresponds 
+# to the XCMSnExp object that contains the detected peaks 
+
+# Load dplyr (required for left_join())
+library(dplyr)
+
+# Create the peak dataframe
+feature_dataframe <- as.data.frame(chromPeaks(xdata))
+
+# Retrieve the sample names and store it as a dataframe
+sample_names_df <- as.data.frame(sampleNames(xdata))
+
+# Rename the unique column "sample_name"
+colnames(sample_names_df) <- c("sample_name")
+
+# Generate the correct sample ids for matching purposes
+# XCMS sampleNames() function returns sample names ordered by their ids
+sample_names_df$sample <- seq.int(nrow(sample_names_df))
+
+# Attach the sample names to the main dataframe by matching ids (sample column)
+feature_dataframe <- left_join(feature_dataframe,sample_names_df, by="sample")
+
+### Feature information addition ###
+
+# Here we will bring the feature alignment information stored in the XCMSnExp object to the dataframe that we have already created
+
+featuresDef <- featureDefinitions(xdata)
+featuresDef_df = data.frame(featuresDef)
+
+# Only keep the information we need
+features_df = data.frame(featuresDef_df[,12])
+# Rename the column
+peak_colummn_name <- colnames(features_df)
+features_df = rename(features_df, "peak_id"=peak_colummn_name)
+
+features_df <- cbind(feature_id= row.names(features_df),features_df)
+
+# We'll use data.table for the next step
+require(data.table)
+
+# Get all the peak_id for each feature_id
+features_df <- data.table(features_df)
+features_df = features_df[, list(peak_id = unlist(peak_id)), by=feature_id]
+
+# Bring the feature_id to the original peak dataframe
+feature_dataframe = cbind(peak_id= row.names(feature_dataframe),feature_dataframe)
+feature_dataframe$peak_id = as.character(feature_dataframe$peak_id)
+feature_dataframe = left_join(feature_dataframe, features_df, by="peak_id")
+
+# Note: The dataframe contains an extra column called peak_id, but this won't affect NeatMS and will simply be ignored (as would any other column not present in the list above).
+
+# Export the data as csv. 
+# Note: Set row.names to FALSE as NeatMS does not need them
+file_path <- "path/to/the/aligned_feature_table.csv"
+write.csv(feature_dataframe,file_path, row.names = FALSE)
+
+```

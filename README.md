@@ -1,5 +1,5 @@
 # NeatMS
-[![PyPI version](https://badge.fury.io/py/NeatMS.svg)](https://badge.fury.io/py/NeatMS) [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/neatms/README.html) [![Documentation Status](https://readthedocs.org/projects/neatms/badge/?version=latest)](https://neatms.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://img.shields.io/pypi/v/NeatMS?color=brightgreen&label=pypi%20package)](https://neatms.readthedocs.io/en/latest/) [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/neatms/README.html) [![Documentation Status](https://readthedocs.org/projects/neatms/badge/?version=latest)](https://neatms.readthedocs.io/en/latest/?badge=latest) [![License MIT](https://img.shields.io/pypi/l/NeatMS?color=brightgreen)](https://github.com/bihealth/NeatMS/blob/master/LICENSE)
 
 
 ## Introduction

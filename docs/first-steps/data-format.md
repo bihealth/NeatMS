@@ -93,7 +93,7 @@ Expected columns:
 
 The feature table can be reconstructed in many different ways using **R**, here is snippet that uses `dplyr` to generate the desired format. The main task is to bring the filenames into the dataframe and store in the `sample_name` column.
 
-``` R
+```
 # This code assumes that the xdata variable corresponds 
 # to the XCMSnExp object that contains the detected peaks 
 
@@ -130,6 +130,8 @@ write.csv(feature_dataframe,file_path, row.names = FALSE)
 
 Here we can use the same code as above to get the peak specific information, but we will add the alignment (and grouping) information to the dataframe. This obviously assumes that you have aligned your peaks across samples and/or grouped peaks within samples. 
 
+> *Some lines may require adjustment of variables, they are preceded by "Adjust variable" in the code below*
+
 ```
 # The first part of the code is the same as for unaligned peaks, you can jump to the feature information addition 
 
@@ -162,7 +164,9 @@ feature_dataframe <- left_join(feature_dataframe,sample_names_df, by="sample")
 featuresDef <- featureDefinitions(xdata)
 featuresDef_df = data.frame(featuresDef)
 
-# Only keep the information we need
+# Adjust variable
+# Only keep the information we need (column named 'peakidx')
+# Replace the value 12 by the index of the peakidx column in your dataframe
 features_df = data.frame(featuresDef_df[,12])
 # Rename the column
 peak_colummn_name <- colnames(features_df)

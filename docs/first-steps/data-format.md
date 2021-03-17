@@ -5,7 +5,7 @@ The module requires two types of input:
 * Raw data files in mzML format.
 * One feature table file in .csv format (multiple if peaks are not aligned).
 
-> *Update, form version 0.7 aligned peaks are also supported with XCMS. See Feature table export from XCMS for more information.*
+> *Update, from version 0.7 aligned peaks are also supported with XCMS. See Feature table export from XCMS for more information.*
 
 ## Raw data in mzML
 

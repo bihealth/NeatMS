@@ -121,6 +121,12 @@ class FeatureCollection():
                                     data_list.append(peak.area_baseline_corrected)
                                 if export_property == "sn":
                                     data_list.append(peak.sn)
+                                if export_property == "rt_adjusted":
+                                    data_list.append(peak.rt_adjusted)
+                                if export_property == "rtmin_adjusted":
+                                    data_list.append(peak.rtmin_adjusted)
+                                if export_property == "rtmax_adjusted":
+                                    data_list.append(peak.rtmax_adjusted)
                             feature_data_list.append(data_list)
             return feature_data_list
         else:
@@ -496,11 +502,15 @@ class XcmsFeatureTable(FeatureTable):
                 height = feature_array[6][entry],
                 area = feature_array[7][entry],
                 area_bc = feature_array[8][entry],
-                sn = feature_array[9][entry]
+                sn = feature_array[9][entry],
+                rt_adjusted = feature_array[13][entry] / 60,
+                rtmin_adjusted = feature_array[14][entry] / 60,
+                rtmax_adjusted = feature_array[15][entry] / 60,
             )  
             # Create peak
             new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
-                peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'])
+                peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'],
+                rt_adjusted=peak_dict['rt_adjusted'], rtmin_adjusted=peak_dict['rtmin_adjusted'], rtmax_adjusted=peak_dict['rtmax_adjusted'])
             # Add feature to the peak (one peak is attached to a unique feature)
             new_peak.feature = feature
             # Add the peak to the sample
@@ -546,11 +556,15 @@ class XcmsFeatureTable(FeatureTable):
                         height = unique_feature_sample_array[6][entry],
                         area = unique_feature_sample_array[7][entry],
                         area_bc = unique_feature_sample_array[8][entry],
-                        sn = unique_feature_sample_array[9][entry]
+                        sn = unique_feature_sample_array[9][entry],
+                        rt_adjusted = unique_feature_sample_array[13][entry] / 60,
+                        rtmin_adjusted = unique_feature_sample_array[14][entry] / 60,
+                        rtmax_adjusted = unique_feature_sample_array[15][entry] / 60,
                     )  
                     # Create peak
                     new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
-                        peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'])
+                        peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'],
+                        rt_adjusted=peak_dict['rt_adjusted'], rtmin_adjusted=peak_dict['rtmin_adjusted'], rtmax_adjusted=peak_dict['rtmax_adjusted'])
                     # Add feature to the peak (one peak is attached to a unique feature)
                     new_peak.feature = feature
                     # Add the peak to the sample
@@ -604,10 +618,28 @@ class XcmsFeatureTable(FeatureTable):
                           self.feature_table['sn'],self.feature_table['sample_name'],self.feature_table['sample'],
                           self.feature_table['feature_id']])
 
+        # Check & add optional columns (adjusted retention time information)
+        if 'rt_adjusted' in self.feature_table.columns:
+            feature_array = np.append(feature_array, [self.feature_table['rt_adjusted']], axis=0)
+        else:
+            feature_array = np.append(feature_array, [np.repeat(np.nan, feature_array.shape[1])], axis=0)
+        if 'rtmin_adjusted' in self.feature_table.columns:
+            feature_array = np.append(feature_array, [self.feature_table['rtmin_adjusted']], axis=0)
+        else:
+            feature_array = np.append(feature_array, [np.repeat(np.nan, feature_array.shape[1])], axis=0)
+        if 'rtmax_adjusted' in self.feature_table.columns:
+            feature_array = np.append(feature_array, [self.feature_table['rtmax_adjusted']], axis=0)
+        else:
+            feature_array = np.append(feature_array, [np.repeat(np.nan, feature_array.shape[1])], axis=0)
+
         if aligned:
+            # Subset feature array to keep only unaligned peaks
             unaligned_feature_array = feature_array[:,feature_array[12] == -1]
+            # Load unaligned peaks
             self.load_unaligned_features(unaligned_feature_array, sample_map)
+            # Subset feature array to keep only aligned peaks
             aligned_feature_array = feature_array[:,feature_array[12] != -1]
+            # Load aligned peaks
             self.load_aligned_features(aligned_feature_array, sample_map)
         else:
             self.load_unaligned_features(feature_array, sample_map)

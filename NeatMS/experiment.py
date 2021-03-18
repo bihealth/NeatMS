@@ -177,6 +177,12 @@ class Experiment():
                 columns.append("area_bc")
             if export_property == "sn":
                 columns.append("sn")
+            if export_property == "rt_adjusted":
+                columns.append("rt_adjusted")
+            if export_property == "rtmin_adjusted":
+                columns.append("rtmin_adjusted")
+            if export_property == "rtmax_adjusted":
+                columns.append("rtmax_adjusted")
         return columns
 
 

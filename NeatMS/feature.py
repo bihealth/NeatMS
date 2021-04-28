@@ -123,10 +123,10 @@ class FeatureCollection():
                                     data_list.append(peak.sn)
                                 if export_property == "rt_adjusted":
                                     data_list.append(peak.rt_adjusted)
-                                if export_property == "rtmin_adjusted":
-                                    data_list.append(peak.rtmin_adjusted)
-                                if export_property == "rtmax_adjusted":
-                                    data_list.append(peak.rtmax_adjusted)
+                                if export_property == "rt_start_adjusted":
+                                    data_list.append(peak.rt_start_adjusted)
+                                if export_property == "rt_end_adjusted":
+                                    data_list.append(peak.rt_end_adjusted)
                             feature_data_list.append(data_list)
             return feature_data_list
         else:
@@ -504,13 +504,13 @@ class XcmsFeatureTable(FeatureTable):
                 area_bc = feature_array[8][entry],
                 sn = feature_array[9][entry],
                 rt_adjusted = feature_array[13][entry] / 60,
-                rtmin_adjusted = feature_array[14][entry] / 60,
-                rtmax_adjusted = feature_array[15][entry] / 60,
+                rt_start_adjusted = feature_array[14][entry] / 60,
+                rt_end_adjusted = feature_array[15][entry] / 60,
             )  
             # Create peak
             new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
                 peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'],
-                rt_adjusted=peak_dict['rt_adjusted'], rtmin_adjusted=peak_dict['rtmin_adjusted'], rtmax_adjusted=peak_dict['rtmax_adjusted'])
+                rt_adjusted=peak_dict['rt_adjusted'], rt_start_adjusted=peak_dict['rt_start_adjusted'], rt_end_adjusted=peak_dict['rt_end_adjusted'])
             # Add feature to the peak (one peak is attached to a unique feature)
             new_peak.feature = feature
             # Add the peak to the sample
@@ -558,13 +558,13 @@ class XcmsFeatureTable(FeatureTable):
                         area_bc = unique_feature_sample_array[8][entry],
                         sn = unique_feature_sample_array[9][entry],
                         rt_adjusted = unique_feature_sample_array[13][entry] / 60,
-                        rtmin_adjusted = unique_feature_sample_array[14][entry] / 60,
-                        rtmax_adjusted = unique_feature_sample_array[15][entry] / 60,
+                        rt_start_adjusted = unique_feature_sample_array[14][entry] / 60,
+                        rt_end_adjusted = unique_feature_sample_array[15][entry] / 60,
                     )  
                     # Create peak
                     new_peak = Peak(sample, peak_dict['RT'], peak_dict['mz'], peak_dict['rt_start'], peak_dict['rt_end'], peak_dict['mz_min'], 
                         peak_dict['mz_max'], peak_dict['height'], peak_dict['area'], area_baseline_corrected=peak_dict['area_bc'], sn=peak_dict['sn'],
-                        rt_adjusted=peak_dict['rt_adjusted'], rtmin_adjusted=peak_dict['rtmin_adjusted'], rtmax_adjusted=peak_dict['rtmax_adjusted'])
+                        rt_adjusted=peak_dict['rt_adjusted'], rt_start_adjusted=peak_dict['rt_start_adjusted'], rt_end_adjusted=peak_dict['rt_end_adjusted'])
                     # Add feature to the peak (one peak is attached to a unique feature)
                     new_peak.feature = feature
                     # Add the peak to the sample

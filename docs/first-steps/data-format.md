@@ -86,6 +86,9 @@ Expected columns:
 * sample
 * sample_name
 * feature_id (only required if peaks have been aligned)
+* rt_adjusted (optional)
+* rtmin_adjusted (optional)
+* rtmax_adjusted (optional)
 
 > *For more details on the information contained in each variable, please refer to XCMS documentation.*
 
@@ -126,9 +129,9 @@ write.csv(feature_dataframe,file_path, row.names = FALSE)
 > *When using your own code to reconstruct the dataframe, make sure to respect the correct order of the samples by matching the correct sample id to the correct sample name*
  
  
-### Feature table export from XCMS (aligned peaks)
+### Feature table export from XCMS (aligned peaks with gapfilling)
 
-Here we can use the same code as above to get the peak specific information, but we will add the alignment (and grouping) information to the dataframe. This obviously assumes that you have aligned your peaks across samples and/or grouped peaks within samples. 
+Here we can use the same code as above to get the peak specific information, but we will add the alignment, grouping information and peaks recovered through the gap filling step to the dataframe. This obviously assumes that you have aligned your peaks across samples and grouped peaks within samples, and then run the gap filling step to recover missing peaks. 
 
 ```
 # The first part of the code is the same as for unaligned peaks, you can jump to the feature information addition 
@@ -138,12 +141,33 @@ Here we can use the same code as above to get the peak specific information, but
 
 # Load dplyr (required for left_join())
 library(dplyr)
+# Load tibble (required for rownames_to_column())
+library(tibble)
 
-# Create the peak dataframe
-feature_dataframe <- as.data.frame(chromPeaks(xdata))
+# Create dataframe containing adjusted retention times 
+df_chrom_peaks_fill <- as.data.frame(chromPeaks(xdata_filled))
+# Create dataframe with raw retention times 
+feature_dataframe <- as.data.frame(chromPeaks(dropAdjustedRtime(xdata_filled)))
 
-# Retrieve the sample names and store it as a dataframe
-sample_names_df <- as.data.frame(sampleNames(xdata))
+# Get the peaks that have been recovered by the gapfilling step
+df_filled_peaks <- df_chrom_peaks_fill[!row.names(df_chrom_peaks_fill) %in% c(rownames(feature_dataframe)),]
+
+# Add them to the raw retention time dataframe (filled peaks do not have raw retention times so we use the adjusted ones)
+feature_dataframe <- bind_rows(feature_dataframe, df_filled_peaks)
+
+# Rename the retention time columns of the adjusted rt dataframe
+df_chrom_peaks_fill <- df_chrom_peaks_fill %>%
+  rename(rt_adjusted = rt, rtmin_adjusted = rtmin, rtmax_adjusted = rtmax)
+
+# Add the adjusted rt columns to the dataframe containing raw rt
+# To have a dataframe containing both raw and adjusted rt information
+feature_dataframe <- left_join(rownames_to_column(feature_dataframe), rownames_to_column(df_chrom_peaks_fill[,c("rt_adjusted","rtmin_adjusted","rtmax_adjusted")]), by="rowname")
+
+# Remove the rownames as we won't need them
+feature_dataframe$rowname <- NULL
+
+# Retrieve the sample names and store them as a dataframe
+sample_names_df <- as.data.frame(sampleNames(xdata_filled))
 
 # Rename the unique column "sample_name"
 colnames(sample_names_df) <- c("sample_name")
@@ -159,16 +183,19 @@ feature_dataframe <- left_join(feature_dataframe,sample_names_df, by="sample")
 
 # Here we will bring the feature alignment information stored in the XCMSnExp object to the dataframe that we have already created
 
-featuresDef <- featureDefinitions(xdata)
+featuresDef <- featureDefinitions(xdata_filled)
 featuresDef_df = data.frame(featuresDef)
 
+# Adjust variable
 # Only keep the information we need (column named 'peakidx')
 # Get the index of the peakidx column
 column_index <- which(colnames(featuresDef_df)=="peakidx")
+# Extract the peakidx column
 features_df = data.frame(featuresDef_df[,column_index])
+
 # Rename the column
 peak_colummn_name <- colnames(features_df)
-features_df = rename(features_df, "peak_id"=peak_colummn_name)
+features_df = rename(features_df, "peak_id"=all_of(peak_colummn_name))
 
 features_df <- cbind(feature_id= row.names(features_df),features_df)
 
@@ -182,6 +209,7 @@ features_df = features_df[, list(peak_id = unlist(peak_id)), by=feature_id]
 # Bring the feature_id to the original peak dataframe
 feature_dataframe = cbind(peak_id= row.names(feature_dataframe),feature_dataframe)
 feature_dataframe$peak_id = as.character(feature_dataframe$peak_id)
+features_df$peak_id = as.character(features_df$peak_id)
 feature_dataframe = left_join(feature_dataframe, features_df, by="peak_id")
 
 # Note: The dataframe contains an extra column called peak_id, but this won't affect NeatMS and will simply be ignored (as would any other column not present in the list above).

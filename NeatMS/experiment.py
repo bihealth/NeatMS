@@ -179,10 +179,10 @@ class Experiment():
                 columns.append("sn")
             if export_property == "rt_adjusted":
                 columns.append("rt_adjusted")
-            if export_property == "rtmin_adjusted":
-                columns.append("rtmin_adjusted")
-            if export_property == "rtmax_adjusted":
-                columns.append("rtmax_adjusted")
+            if export_property == "rt_start_adjusted":
+                columns.append("rt_start_adjusted")
+            if export_property == "rt_end_adjusted":
+                columns.append("rt_end_adjusted")
         return columns
 
 

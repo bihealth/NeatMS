@@ -31,7 +31,7 @@ class NN_handler():
 
     def create_batches(self, validation_split=0.1, normalise_class=False, merge_classes=[]):
         from sklearn.preprocessing import LabelEncoder
-        from keras.utils import to_categorical
+        from tensorflow.keras.utils import to_categorical
         # Get all the peaks that have been annotated
         all_peaks = [peak for annotation in self.annotation_table.annotations for peak in annotation.peaks if (annotation.label in self.labels)]
         # Randomise them as they come by order of annotation
@@ -195,10 +195,10 @@ class NN_handler():
 
 
     def create_model(self, lr=0.00001, optimizer='Adam', model=None):
-        from keras.models import Model, load_model
-        from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Input, concatenate
-        from keras import regularizers
-        from keras.optimizers import SGD, Adam     
+        from tensorflow.keras.models import Model, load_model
+        from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Input, concatenate
+        from tensorflow.keras import regularizers
+        from tensorflow.keras.optimizers import SGD, Adam     
 
         # if model then load existing trained model
         if model:
